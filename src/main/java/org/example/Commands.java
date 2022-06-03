@@ -89,7 +89,7 @@ public class Commands extends ListenerAdapter {
                     msgEmbed.addField("help","displays embed of commands to user",false);
                     msgEmbed.addField("creditcard","displays users balance",false);
                     msgEmbed.addField("signup","Signs up new user to be able to gamba",false);
-                    msgEmbed.addField("coinflip","ex: &coinflip heads 100 ",false);
+                    msgEmbed.addField("coinflip","ex: &coinflip heads 100  BET RANGE: (1-1000) ",false);
                     event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
                     msgEmbed.clear();
                     break;
