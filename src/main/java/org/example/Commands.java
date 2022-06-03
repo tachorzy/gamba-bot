@@ -1,6 +1,9 @@
 package org.example;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+
+import java.awt.*;
 
 /*
     Methods:
@@ -17,8 +20,6 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
     onMessageRecieved -> Where commands are held and message events happen
 
-
-
     Purpose of Class:
     Registers Commands and responds accordingly
     Gamba Commands
@@ -29,15 +30,14 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
     arg[0] is the command rest is parameters or options to the command
 */
 
-
-
 public class Commands extends ListenerAdapter {
-    //initialize the db object and the message prefix
+    //initialize the prefix and required objects
     public char PREFIX = '*';
     public DataBase server;
     public CoinFlip coinFlipObject;
+    public EmbedBuilder msgEmbed = new EmbedBuilder();
 
-    //initialize the server object to the db object we created
+    //Constructor
     public Commands(DataBase db, CoinFlip coinFlipObj){
         server = db;
         coinFlipObject = coinFlipObj;
@@ -54,9 +54,7 @@ public class Commands extends ListenerAdapter {
 
     //check if a user exists
     public boolean checkUser(MessageReceivedEvent event){
-        if(server.findUser(String.valueOf(event.getMember().getIdLong()))){
-            return true;
-        }
+        if(server.findUser(String.valueOf(event.getMember().getIdLong()))){ return true; }
         return false;
     }
 
@@ -83,74 +81,77 @@ public class Commands extends ListenerAdapter {
         //parse the command and check if its within our switch statement
         if(args[0].charAt(0) == PREFIX){
             switch(args[0].substring(1)){
+                //builds an embed to show user all the commands
+                case "help":
+                    msgEmbed.setColor(Color.YELLOW);
+                    msgEmbed.setTitle("Commands:");
+                    msgEmbed.setDescription("Use the Prefix & before command names");
+                    msgEmbed.addField("help","displays embed of commands to user",false);
+                    msgEmbed.addField("creditcard","displays users balance",false);
+                    msgEmbed.addField("signup","Signs up new user to be able to gamba",false);
+                    msgEmbed.addField("coinflip","ex: &coinflip heads 100 ",false);
+                    event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
+                    msgEmbed.clear();
+                    break;
 
-                //registers the user into the database
+                //retrieves users "credit card"
+                case "creditcard":
+                    if(!(checkUser(event))){
+                        event.getChannel().sendMessage("Error: please specify a valid amount you would like to bet").queue();
+                        break;
+                    }
+                    //build embed to display to user
+                    msgEmbed.setColor(Color.RED);
+                    msgEmbed.setTitle(event.getAuthor().getAsTag());
+                    msgEmbed.setThumbnail(event.getAuthor().getAvatarUrl());
+                    msgEmbed.setDescription("ID:" + event.getAuthor().getId() + "\nCredits: " + server.getUserCredits(String.valueOf(event.getAuthor().getIdLong())));
+                    msgEmbed.setFooter("City: Waka Waka eh eh");
+                    event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
+                    msgEmbed.clear();
+                    break;
+
+                //registers the user into the database if there exists a user notify them else create a new user and insert into the database
                 case "signup":
                     if((server.findUser(String.valueOf(event.getMember().getIdLong())))){
-                        event.getChannel().sendMessage("You are already signed up can you not?").queue();
+                        event.getChannel().sendMessage("You are already signed up stop spamming" ).queue();
+                        event.getChannel().sendMessage("https://wompampsupport.azureedge.net/fetchimage?siteId=7575&v=2&jpgQuality=100&width=700&url=https%3A%2F%2Fi.kym-cdn.com%2Fphotos%2Fimages%2Fnewsfeed%2F001%2F741%2F230%2Fb06.jpg" ).queue();
                     }
                     else{
                         server.insertUser(String.valueOf(event.getMember().getIdLong()));
                         String message = "<@" + String.valueOf(event.getJDA().getSelfUser().getIdLong()) + ">" + " has bestowed you the lifestyle of Gamba Addiction";
                         event.getChannel().sendMessage(message).queue();
+                        event.getChannel().sendMessage("https://c.tenor.com/P6jRgqCgB4EAAAAd/catjam.gif").queue();
                     }
                     break;
 
-                //Coinflip game  example of how the general structure can be
+                //Coinflip game  example of how the general structure can be more details of code in CoinFlip.java
                 case "coinflip":
+                    //check if user exists if not notify them
+                    if(!(checkUser(event))){event.getChannel().sendMessage("Error 404 User does not exist please register using &signup to Gamba").queue();}
+
                     //if the number of arguments is not enough throw an error
+                    if(!isCommandValid(event,args,"Error: wrong format please try again ex:  &coinflip heads 1000   (command req amount) req is either heads or tails",3)){ break; }
 
+                    //check if user has valid inputs before calculating game result
+                    if(coinFlipObject.validInput(args[1], args[2],server,event)){
 
-                    if(!isCommandValid(event,args,"Error: wrong format please try again ex:  &coinflip heads 1000   (command req amount) req is either heads or tails",3)){
-                        break;
-                    }
-
-                    //check if user request is valid
-                    if(!(args[1].equals("head")  || args[1].equals("heads")   || args[1].equals("tail")  || args[1].equals("tails") ) ){
-                        event.getChannel().sendMessage("Invalid request please make sure to specify if your bet is heads or tails").queue();
-                        break;
-                    }
-
-                    try{
-                        //check users requests if its more than needed then do not allow them to gamble else allow
-                        int userReq =Integer.valueOf(args[2]);
-                        int checkBalance = Integer.valueOf(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
-                        if(userReq > checkBalance){
-                            event.getChannel().sendMessage("Error Insufficient Funds").queue();
-                            break;
-                        }
-                        else if (userReq <= 0){
-                            event.getChannel().sendMessage("Error: please specify a valid amount you would like to bet").queue();
-                            break;
-                        }
-                        //check if user is registered and calculate if they won
-                        if(checkUser(event)){
-
-                            if(coinFlipObject.didUserWin(args[1])){
-                                event.getChannel().sendMessage("Congrats your guess is right!").queue();
-                                updateCredits(event,userReq,true);
-                            }
-                            else{
-                                event.getChannel().sendMessage("Your guess is wrong !holdL.").queue();
-                                updateCredits(event,userReq,false);
-                            }
+                        //calculate game result and update value
+                        if(coinFlipObject.didUserWin(args[1])) {
+                            event.getChannel().sendMessage(coinFlipObject.thumbnailUrl).queue();
+                            event.getChannel().sendMessage("Congrats your guess is right!").queue();
+                            updateCredits(event, coinFlipObject.userReq, true);
                         }
                         else{
-                            event.getChannel().sendMessage("Error 404 User does not exist please register using &signup to Gamba").queue();
+                            event.getChannel().sendMessage(coinFlipObject.thumbnailUrl).queue();
+                            event.getChannel().sendMessage("Your guess is wrong !holdL.").queue();
+                            updateCredits(event,coinFlipObject.userReq,false);
                         }
-                    }catch(NumberFormatException e){
-                        System.out.println("error");
-                        event.getChannel().sendMessage("Error: please specify a valid amount you would like to bet").queue();
                     }
+
+                    //reset object
+                    coinFlipObject.clearGame();
                     break;
 
-                //Need to create a help embed and a stats embed for specific user
-                case "help":
-                    //create a embed that list all commands and their description
-                    break;
-                case "stats":
-                    //create a embed that list users name and their credits
-                    break;
                 default:
                     break;
             }
