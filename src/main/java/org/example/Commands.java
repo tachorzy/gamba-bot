@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.awt.*;
+import java.util.concurrent.TimeUnit;
 
 /*
     Methods:
@@ -35,12 +36,16 @@ public class Commands extends ListenerAdapter {
     public char PREFIX = '*';
     public DataBase server;
     public CoinFlip coinFlipObject;
+    public DiceRoll diceRollObject;
+    public JackpotWheel jackpotWheelObject;
     public EmbedBuilder msgEmbed = new EmbedBuilder();
 
     //Constructor
-    public Commands(DataBase db, CoinFlip coinFlipObj){
+    public Commands(DataBase db, CoinFlip coinFlipObj, DiceRoll diceRollObj, JackpotWheel jackpotwheelObj){
         server = db;
         coinFlipObject = coinFlipObj;
+        diceRollObject = diceRollObj;
+        jackpotWheelObject = jackpotwheelObj;
     }
 
     // check if users command is valid
@@ -89,7 +94,9 @@ public class Commands extends ListenerAdapter {
                     msgEmbed.addField("help","displays embed of commands to user",false);
                     msgEmbed.addField("creditcard","displays users balance",false);
                     msgEmbed.addField("signup","Signs up new user to be able to gamba",false);
-                    msgEmbed.addField("coinflip","ex: &coinflip heads 100  BET RANGE: (1-1000) ",false);
+                    msgEmbed.addField("coinflip","ex: &coinflip heads 100  BET RANGE: (1-250) ",false);
+                    msgEmbed.addField("diceroll","Win by rolling a 3 or a 6, if you roll a 6 you get a bonus bet multiplier\nMultiplier: 1:50%,2:100%,3:150%,4:225%,5:300%,6:400%\n ex: &diceroll 500  BET RANGE: (500-2000) ",false);
+                    msgEmbed.addField("spinwheel", "Initial Jackpot Value: 30,000\nCost per spin: 500 ",false);
                     event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
                     msgEmbed.clear();
                     break;
@@ -138,12 +145,12 @@ public class Commands extends ListenerAdapter {
                         //calculate game result and update value
                         if(coinFlipObject.didUserWin(args[1])) {
                             event.getChannel().sendMessage(coinFlipObject.thumbnailUrl).queue();
-                            event.getChannel().sendMessage("Congrats your guess is right!").queue();
+                            event.getChannel().sendMessage("Congrats your guess is right!").queueAfter(2, TimeUnit.SECONDS);
                             updateCredits(event, coinFlipObject.userReq, true);
                         }
                         else{
                             event.getChannel().sendMessage(coinFlipObject.thumbnailUrl).queue();
-                            event.getChannel().sendMessage("Your guess is wrong !holdL.").queue();
+                            event.getChannel().sendMessage("Your guess is wrong !holdL.").queueAfter(2, TimeUnit.SECONDS);
                             updateCredits(event,coinFlipObject.userReq,false);
                         }
                     }
@@ -151,7 +158,69 @@ public class Commands extends ListenerAdapter {
                     //reset object
                     coinFlipObject.clearGame();
                     break;
+                case "diceroll":
+                    if(!(checkUser(event))){event.getChannel().sendMessage("Error 404 User does not exist please register using &signup to Gamba").queue();}
 
+                    //if the number of arguments is not enough throw an error
+                    if(!isCommandValid(event,args,"Error: wrong format please try again ex:  &diceroll 1000   (command amount) req is either heads or tails",2)){ break; }
+
+                    //check valid input
+                    if(diceRollObject.validInput(args[1],server,event)){
+                        //check if user won
+                        if(diceRollObject.didUserWin()){
+                            event.getChannel().sendMessage(diceRollObject.thumbnailUrl).queue();
+                            event.getChannel().sendMessage("Congrats your guess is right!").queueAfter(4, TimeUnit.SECONDS);
+                            //if the dice was a six roll for a multipler
+                            if(diceRollObject.betMultipler){
+                                diceRollObject.calculateMultiplier();
+                                event.getChannel().sendMessage(diceRollObject.thumbnailUrl).queue();
+                                event.getChannel().sendMessage("Bonus: " + diceRollObject.bonusVal + "\nTotal: " + diceRollObject.userReq).queueAfter(4, TimeUnit.SECONDS);
+                            }
+                            updateCredits(event, diceRollObject.userReq, true);
+                        }
+                        else{
+                            event.getChannel().sendMessage(diceRollObject.thumbnailUrl).queue();
+                            event.getChannel().sendMessage("Your guess is wrong !holdL.").queueAfter(4, TimeUnit.SECONDS);
+                            updateCredits(event,diceRollObject.userReq,false);
+                        }
+                    }
+                    //reset object
+                    diceRollObject.clearGame();
+                    break;
+                case "spinwheel":
+                    if(!(checkUser(event))){event.getChannel().sendMessage("Error 404 User does not exist please register using &signup to Gamba").queue();}
+
+                    //if the number of arguments is not enough throw an error
+                    if(!isCommandValid(event,args,"Error: wrong format please try again ex: &spinwheel",1)){ break; }
+
+                    //check if user has enough balance
+                    if(jackpotWheelObject.validBalance(server,event)){
+                        //check if user won
+                        if(jackpotWheelObject.didUserWin()){
+                            event.getChannel().sendMessage(jackpotWheelObject.thumbnailUrl).queue();
+                            event.getChannel().sendMessage(":tada: :tada: :tada: :tada: :partying_face: JACKPOT!!! :partying_face: :tada: :tada: :tada: :tada:\nhttps://c.tenor.com/nBX1KXnHfqQAAAAC/fishpog.gif").queueAfter(5, TimeUnit.SECONDS);
+                            updateCredits(event, jackpotWheelObject.getJackpotVal(), true);
+
+                            //reset jackpot value
+                            jackpotWheelObject.resetJackpot();
+                        }
+                        else{
+                            event.getChannel().sendMessage(jackpotWheelObject.thumbnailUrl).queue();
+                            event.getChannel().sendMessage("Your guess is wrong !holdL.").queueAfter(5, TimeUnit.SECONDS);
+                            updateCredits(event,jackpotWheelObject.userReq,false);
+                        }
+                    }
+                    //reset object
+                    jackpotWheelObject.clearGame();
+                    break;
+                case "jackpotsize":
+                    msgEmbed.setColor(Color.cyan);
+                    msgEmbed.setTitle("GRAND JACKPOT PRIZE");
+                    msgEmbed.setThumbnail("https://media0.giphy.com/media/l41YevbrMDaHgismI/200.gif");
+                    msgEmbed.setDescription("Value\n" +String.valueOf(jackpotWheelObject.getJackpotVal()));
+                    event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
+                    msgEmbed.clear();
+                    break;
                 default:
                     break;
             }

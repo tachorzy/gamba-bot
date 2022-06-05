@@ -54,7 +54,9 @@ public  class DiscordBot {
         JDA bot = JDABuilder.createDefault(DISCORDTOKEN)
                 .setActivity(Activity.playing("Slots #Gamba Addiction"))
                 .build();
-        bot.addEventListener(new Commands(new DataBase(DBTOKEN,databaseName,collectionName),new CoinFlip()));
+
+        //NOTE: if you want to create a new class for a new feature implementation, create a new object below
+        bot.addEventListener(new Commands(new DataBase(DBTOKEN,databaseName,collectionName),new CoinFlip(),new DiceRoll(),new JackpotWheel()));
         System.out.println("Bot is up and running!");
 
     }
