@@ -38,14 +38,16 @@ public class Commands extends ListenerAdapter {
     public CoinFlip coinFlipObject;
     public DiceRoll diceRollObject;
     public JackpotWheel jackpotWheelObject;
+    public Fishing fishingObject;
     public EmbedBuilder msgEmbed = new EmbedBuilder();
 
     //Constructor
-    public Commands(DataBase db, CoinFlip coinFlipObj, DiceRoll diceRollObj, JackpotWheel jackpotwheelObj){
+    public Commands(DataBase db, CoinFlip coinFlipObj, DiceRoll diceRollObj, JackpotWheel jackpotwheelObj,Fishing fishingObj){
         server = db;
         coinFlipObject = coinFlipObj;
         diceRollObject = diceRollObj;
         jackpotWheelObject = jackpotwheelObj;
+        fishingObject = fishingObj;
     }
 
     // check if users command is valid
@@ -83,6 +85,9 @@ public class Commands extends ListenerAdapter {
         //split the user message into an array
         String[] args = event.getMessage().getContentRaw().split(" ");
 
+        //when the user messages add 5 points to their balance each time
+        updateCredits(event,5,true);
+
         //parse the command and check if its within our switch statement
         if(args[0].charAt(0) == PREFIX){
             switch(args[0].substring(1)){
@@ -94,6 +99,7 @@ public class Commands extends ListenerAdapter {
                     msgEmbed.addField("help","displays embed of commands to user",false);
                     msgEmbed.addField("creditcard","displays users balance",false);
                     msgEmbed.addField("signup","Signs up new user to be able to gamba",false);
+                    msgEmbed.addField("fish","pay 10 buckeroos to cast out bait, highest payout is catching a Megaladon",false);
                     msgEmbed.addField("coinflip","ex: &coinflip heads 100  BET RANGE: (1-250) ",false);
                     msgEmbed.addField("diceroll","Win by rolling a 3 or a 6, if you roll a 6 you get a bonus bet multiplier\nMultiplier: 1:50%,2:100%,3:150%,4:225%,5:300%,6:400%\n ex: &diceroll 500  BET RANGE: (500-2000) ",false);
                     msgEmbed.addField("spinwheel", "Initial Jackpot Value: 30,000\nCost per spin: 500 ",false);
@@ -131,6 +137,28 @@ public class Commands extends ListenerAdapter {
                     }
                     break;
 
+                case "fish":
+                    if(!(checkUser(event))){event.getChannel().sendMessage("Error 404 User does not exist please register using &signup to Gamba").queue();}
+
+                    //if the number of arguments is not enough throw an error
+                    if(!isCommandValid(event,args,"Error: wrong format please try again ex: &spinwheel",1)){ break; }
+
+                    //check if user has enough balance
+                    if(fishingObject.validBalance(server,event)){
+                        fishingObject.goFish();
+                        if(fishingObject.didUserWin()){
+                            event.getChannel().sendMessage("Congratulations you caught a: " + fishingObject.getCritter() +
+                                    " you earned " + fishingObject.userReq + " after Sussy Tax").queue();
+                            updateCredits(event, fishingObject.userReq, true);
+                        }
+                        else{
+                            event.getChannel().sendMessage("You caught a: " + fishingObject.getCritter() + "you lost 10 credits due to Sussy Tax !holdL").queue();
+                            updateCredits(event, fishingObject.userReq, false);
+                        }
+                    }
+                    //reset object
+                    fishingObject.clearGame();
+                    break;
                 //Coinflip game  example of how the general structure can be more details of code in CoinFlip.java
                 case "coinflip":
                     //check if user exists if not notify them
@@ -169,7 +197,7 @@ public class Commands extends ListenerAdapter {
                         //check if user won
                         if(diceRollObject.didUserWin()){
                             event.getChannel().sendMessage(diceRollObject.thumbnailUrl).queue();
-                            event.getChannel().sendMessage("Congrats your guess is right!").queueAfter(4, TimeUnit.SECONDS);
+                            event.getChannel().sendMessage("Congrats you won!").queueAfter(4, TimeUnit.SECONDS);
                             //if the dice was a six roll for a multipler
                             if(diceRollObject.betMultipler){
                                 diceRollObject.calculateMultiplier();
@@ -180,7 +208,7 @@ public class Commands extends ListenerAdapter {
                         }
                         else{
                             event.getChannel().sendMessage(diceRollObject.thumbnailUrl).queue();
-                            event.getChannel().sendMessage("Your guess is wrong !holdL.").queueAfter(4, TimeUnit.SECONDS);
+                            event.getChannel().sendMessage("You Lost !holdL.").queueAfter(4, TimeUnit.SECONDS);
                             updateCredits(event,diceRollObject.userReq,false);
                         }
                     }
@@ -206,16 +234,17 @@ public class Commands extends ListenerAdapter {
                         }
                         else{
                             event.getChannel().sendMessage(jackpotWheelObject.thumbnailUrl).queue();
-                            event.getChannel().sendMessage("Your guess is wrong !holdL.").queueAfter(5, TimeUnit.SECONDS);
+                            event.getChannel().sendMessage("You Lost !holdL.").queueAfter(5, TimeUnit.SECONDS);
                             updateCredits(event,jackpotWheelObject.userReq,false);
                         }
                     }
                     //reset object
                     jackpotWheelObject.clearGame();
                     break;
+                //display embed of the current jackpot value for wheel
                 case "jackpotsize":
                     msgEmbed.setColor(Color.cyan);
-                    msgEmbed.setTitle("GRAND JACKPOT PRIZE");
+                    msgEmbed.setTitle("JACKPOT GRAND PRIZE");
                     msgEmbed.setThumbnail("https://media0.giphy.com/media/l41YevbrMDaHgismI/200.gif");
                     msgEmbed.setDescription("Value\n" +String.valueOf(jackpotWheelObject.getJackpotVal()));
                     event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
