@@ -103,6 +103,7 @@ public class Commands extends ListenerAdapter {
                     msgEmbed.addField("coinflip","ex: &coinflip heads 100  BET RANGE: (1-250) ",false);
                     msgEmbed.addField("diceroll","Win by rolling a 3 or a 6, if you roll a 6 you get a bonus bet multiplier\nMultiplier: 1:50%,2:100%,3:150%,4:225%,5:300%,6:400%\n ex: &diceroll 500  BET RANGE: (500-2000) ",false);
                     msgEmbed.addField("spinwheel", "Initial Jackpot Value: 30,000\nCost per spin: 500 ",false);
+                    msgEmbed.addField("fish", "reward values: 5,10,15,20,35,45,75,100,200,500\nCost per line due to Sussy Tax: 10 ",false);
                     event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
                     msgEmbed.clear();
                     break;
@@ -152,7 +153,7 @@ public class Commands extends ListenerAdapter {
                             updateCredits(event, fishingObject.userReq, true);
                         }
                         else{
-                            event.getChannel().sendMessage("You caught a: " + fishingObject.getCritter() + "you lost 10 credits due to Sussy Tax !holdL").queue();
+                            event.getChannel().sendMessage("You caught a: " + fishingObject.getCritter() + " you lost 10 credits due to Sussy Tax !holdL").queue();
                             updateCredits(event, fishingObject.userReq, false);
                         }
                     }

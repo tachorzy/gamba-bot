@@ -126,7 +126,6 @@ public class DiceRoll {
             int request = Integer.valueOf(userBetReq);
             int balance = Integer.valueOf(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
 
-
             //handle if user requests less than 0 throw error
             if (request < 500  ||  request > 2000){
                 event.getChannel().sendMessage("Error: please specify a valid amount you would like to bet range 500-2000").queue();
