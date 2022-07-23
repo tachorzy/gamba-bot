@@ -47,7 +47,7 @@ public class Fishing {
     //reset the game
     public void clearGame(){
         critterChosen = "";
-        critterTable.clear();
+        critterTable = null;
         didUserWinMoney = false;
         userReq = 0;
         userBalance = 0;
