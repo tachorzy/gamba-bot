@@ -25,6 +25,7 @@ public  class DiscordBot {
         String collectionUser = null;
         String collectionCommands = null;
         String collectionBanUrl = null;
+        String collectionBadges = null;
         String databaseName = null;
         String DISCORDTOKEN = null;
         String DBTOKEN = null;
@@ -43,6 +44,9 @@ public  class DiscordBot {
                     break;
                 case "testcollection":
                     collectionUser = dataValue;
+                    break;
+                case "testbadge":
+                    collectionBadges = dataValue;
                     break;
                 case "testcommand":
                     collectionCommands = dataValue;
@@ -63,10 +67,9 @@ public  class DiscordBot {
         JDA bot = JDABuilder.createDefault(DISCORDTOKEN)
                 .setActivity(Activity.playing("Diceroll #Gamba Addiction"))
                 .build();
-
         //NOTE: if you want to create a new class for a new feature implementation, create a new object below
-        bot.addEventListener(new Commands(new DataBase(DBTOKEN,databaseName,collectionUser,collectionCommands,collectionBanUrl),prefixVal,new CoinFlip(),new DiceRoll(),new JackpotWheel(),new Fishing()));
-        System.out.println("Bot is up and running!");
+        bot.addEventListener(new Commands(new DataBase(DBTOKEN,databaseName,collectionUser,collectionCommands,collectionBanUrl,collectionBadges),prefixVal,new CoinFlip(),new DiceRoll(),new JackpotWheel(),new Fishing()));
+        System.out.println(bot.getSelfUser().getName() + " is up and running!");
 
     }
 }

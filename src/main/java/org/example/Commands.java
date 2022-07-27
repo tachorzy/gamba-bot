@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.awt.*;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -44,6 +45,7 @@ public class Commands extends ListenerAdapter {
     public JackpotWheel jackpotWheelObject;
     public Fishing fishingObject;
     public EmbedBuilder msgEmbed = new EmbedBuilder();
+    public EmbedBuilder msgEmbed2 = new EmbedBuilder();
     public HashMap<String, List<String>> commandList;
 
     //Constructor
@@ -93,16 +95,19 @@ public class Commands extends ListenerAdapter {
         String[] args = event.getMessage().getContentRaw().split(" ");
 
         //when the user messages add 5 points to their balance each time
-        if(server.findUser(String.valueOf(event.getMember().getIdLong()))){ updateCredits(event,5,true);}
+        if(server.findUser(String.valueOf(event.getMember().getIdLong()))){ updateCredits(event,10,true);}
 
-        //if user attempts to post url thats banned delete and notify them
-        if (server.isUrlBanned(args[0])) {
-            event.getChannel().deleteMessageById(event.getChannel().getLatestMessageIdLong()).queue();
-            event.getChannel().sendMessage("you used a banned url !bonk <@"+event.getMember().getId() + ">").queue();
+        //if user attempts to post url thats banned delete and notify them check all arguement values to see to ban or not
+        for(String values:args){
+            if (server.isUrlBanned(values)){
+                event.getChannel().deleteMessageById(event.getChannel().getLatestMessageIdLong()).queue();
+                event.getChannel().sendMessage("you used a banned url !bonk <@"+event.getMember().getId() + ">").queue();
+                break;
+            }
         }
 
-        //parse the command and check if its within our switch statement
-        else if(args[0].charAt(0) == PREFIX){
+        //parse the command and check if its within our switch statement  note bug if you just send a picture
+        if(args[0].charAt(0) == PREFIX){
             if(commandList.containsKey(args[0].substring(1)) && server.getCommandPermission(String.valueOf(event.getMember().getIdLong()),args[0].substring(1))){
                 event.getChannel().sendMessage(commandList.get(args[0].substring(1)).get(0)).queue();
             }
@@ -111,25 +116,30 @@ public class Commands extends ListenerAdapter {
                     //builds an embed to show user all the commands
                     case "help":
                         msgEmbed.setColor(Color.YELLOW);
-                        msgEmbed.setTitle("Commands:");
-                        msgEmbed.setDescription("Use the Prefix & before command names");
-                        msgEmbed.addField("help","displays embed of commands to user",false);
-                        msgEmbed.addField("creditcard","displays users balance",false);
-                        msgEmbed.addField("signup","Signs up new user to be able to gamba",false);
-                        msgEmbed.addField("fish","pay 10 buckeroos to cast out bait, highest payout is catching a Megaladon",false);
-                        msgEmbed.addField("coinflip","ex: &coinflip heads 100  BET RANGE: (1-250) ",false);
-                        msgEmbed.addField("diceroll","Win by rolling a 3 or a 6, if you roll a 6 you get a bonus bet multiplier\nMultiplier: 1:50%,2:100%,3:150%,4:225%,5:300%,6:400%\n ex: &diceroll 500  BET RANGE: (500-2000) ",false);
-                        msgEmbed.addField("spinwheel", "Initial Jackpot Value: 30,000\nCost per spin: 500 ",false);
-                        msgEmbed.addField("fish", "reward values: 5,10,15,20,35,45,75,100,200,500\nCost per line due to Sussy Tax: 10 ",false);
-                        msgEmbed.addField("jackpotsize", "returns jackpot size for spinwheel",false);
-                        msgEmbed.addField("shop", "Shows Sussy's Megacenter for commands on sale",false);
-                        msgEmbed.addField("purchase", "Makes a request to buy a specific command if user has enough money for specific command",false);
-                        msgEmbed.addField("sample", "Samples a specific command and dms to user how it would look when user uses specific command",false);
-                        msgEmbed.addField("ban", "bans url/image/gif etc requested PERMISSION: MOD",false);
-                        msgEmbed.addField("addcommand", "adds ur/image/gif requested PERMISSION: MOD",false);
+                        msgEmbed.setTitle("Regular Commands:");
+                        msgEmbed.setDescription("Use the Prefix: " + PREFIX + " before the command names");
+                        msgEmbed.addField("addcommand", "PERMISSION: MOD\nadds ur/image/gif requested \nEX: " + PREFIX + "addcommand kermit dance (url here) gif 2000",false);
+                        msgEmbed.addField("ban", "PERMISSION: MOD\nbans url/image/gif etc requested \nEX: " + PREFIX + "ban (url here)",false);
+                        msgEmbed.addField("creditcard","displays users balance \nEX: " + PREFIX + "creditcard",false);
+                        msgEmbed.addField("help","displays embed of commands to user \nEX: " + PREFIX + "help",false);
+                        msgEmbed.addField("purchase", "Makes a request to buy a specific command if user has enough money for specific command \nEX: " + PREFIX + "purchase kermitdance",false);
+                        msgEmbed.addField("signup","Signs up new user to be able to gamba \nEX: " + PREFIX + "signup",false);
+                        msgEmbed.addField("shop", "Shows Sussy's Megacenter for commands on sale \nEX: " + PREFIX + "shop",false);
+                        msgEmbed.addField("sample", "Samples a specific command and dms to user how it would look when user uses specific command \nEX: " + PREFIX + "sample kermitdance",false);
 
-                        event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
+                        msgEmbed2.setColor(Color.YELLOW);
+                        msgEmbed2.setTitle("Game Commands:");
+                        msgEmbed2.setDescription("Use the Prefix: " + PREFIX + " before the command names");
+                        msgEmbed2.addField("coinflip","Flips a two sided coin (heads/tails) \nEX: " + PREFIX + "coinflip heads 100  BET RANGE: (1-" + coinFlipObject.coinGameMaxAmount + ") ",false);
+                        msgEmbed2.addField("diceroll","Win by rolling a 3 or a 6, if you roll a 6 you get a bonus bet multiplier\nMultiplier: \n50%\n100%\n150%\n225%\n300%\n400%" +
+                                "\n EX: " +PREFIX + "diceroll 500  BET RANGE: (" + diceRollObject.diceGameMinAmount + "-" + diceRollObject.diceGameMaxAmount + ")",false);
+                        msgEmbed2.addField("fish", "reward values: \n15\n20\n25\n30\n40\n50\n60\n85\n125\n275\nCost per line due to Sussy Tax: 20 \nEX: " + PREFIX + "fish" ,false);
+                        msgEmbed2.addField("jackpotsize", "returns jackpot size for spinwheel \nEX: " + PREFIX + "jackspotsize",false);
+                        msgEmbed2.addField("spinwheel", "Initial Jackpot Value: 30,000\nCost per spin: 100 \n EX: " + PREFIX + "spinwheel",false);
+
+                        event.getChannel().sendMessageEmbeds(msgEmbed.build(),msgEmbed2.build()).queue();
                         msgEmbed.clear();
+                        msgEmbed2.clear();
                         break;
 
                     //retrieves users "credit card"
@@ -163,12 +173,11 @@ public class Commands extends ListenerAdapter {
                         break;
                     case "fish":
                         if(!(checkUser(event))){
-                            event.getChannel().sendMessage("Error 404 User does not exist please register using &signup to Gamba").queue();
+                            event.getChannel().sendMessage("Error 404 User does not exist please register using " +PREFIX + "signup to Gamba").queue();
                             break;
                         }
-
                         //if the number of arguments is not enough throw an error
-                        if(!isCommandValid(event,args,"Error: wrong format please try again ex: &spinwheel",1)){ break; }
+                        if(!isCommandValid(event,args,"Error: wrong format use " + PREFIX + "help to see how command works",1)){break;}
 
                         //check if user has enough balance
                         if(fishingObject.validBalance(server,event)){
@@ -179,8 +188,8 @@ public class Commands extends ListenerAdapter {
                                 updateCredits(event, fishingObject.userReq, true);
                             }
                             else{
-                                event.getChannel().sendMessage("You caught a: " + fishingObject.getCritter() + " you lost 10 credits due to Sussy Tax !holdL").queue();
-                                updateCredits(event, fishingObject.userReq, false);
+                                event.getChannel().sendMessage("You caught a: " + fishingObject.getCritter() + " which is illegal under Sussy conservation laws, you lost 125 just  credits !holdL").queue();
+                                updateCredits(event, 125, false);
                             }
                         }
                         //reset object
@@ -191,12 +200,12 @@ public class Commands extends ListenerAdapter {
                     case "coinflip":
                         //check if user exists if not notify them
                         if(!(checkUser(event))){
-                            event.getChannel().sendMessage("Error 404 User does not exist please register using &signup to Gamba").queue();
+                            event.getChannel().sendMessage("Error 404 User does not exist please register using " +PREFIX + "signup to Gamba").queue();
                             break;
                         }
 
                         //if the number of arguments is not enough throw an error
-                        if(!isCommandValid(event,args,"Error: wrong format please try again ex:  &coinflip heads 1000   (command req amount) req is either heads or tails",3)){ break; }
+                        if(!isCommandValid(event,args,"Error: wrong format use " + PREFIX + "help to see how command works",3)){break;}
 
                         //check if user has valid inputs before calculating game result
                         if(coinFlipObject.validInput(args[1], args[2],server,event)){
@@ -219,12 +228,12 @@ public class Commands extends ListenerAdapter {
 
                     case "diceroll":
                         if(!(checkUser(event))){
-                            event.getChannel().sendMessage("Error 404 User does not exist please register using &signup to Gamba").queue();
+                            event.getChannel().sendMessage("Error 404 User does not exist please register using " +PREFIX + "signup to Gamba").queue();
                             break;
                         }
 
                         //if the number of arguments is not enough throw an error
-                        if(!isCommandValid(event,args,"Error: wrong format please try again ex:  &diceroll 1000   (command amount) req is either heads or tails",2)){ break; }
+                        if(!isCommandValid(event,args,"Error: wrong format use " + PREFIX + "help to see how command works",2)){break;}
 
                         //check valid input
                         if(diceRollObject.validInput(args[1],server,event)){
@@ -251,19 +260,19 @@ public class Commands extends ListenerAdapter {
                         break;
                     case "spinwheel":
                         if(!(checkUser(event))){
-                            event.getChannel().sendMessage("Error 404 User does not exist please register using &signup to Gamba").queue();
+                            event.getChannel().sendMessage("Error 404 User does not exist please register using " +PREFIX + "signup to Gamba").queue();
                             break;
                         }
 
                         //if the number of arguments is not enough throw an error
-                        if(!isCommandValid(event,args,"Error: wrong format please try again ex: &spinwheel",1)){ break; }
+                        if(!isCommandValid(event,args,"Error: wrong format use " + PREFIX + "help to see how command works",1)){break;}
 
                         //check if user has enough balance
                         if(jackpotWheelObject.validBalance(server,event)){
                             //check if user won
                             if(jackpotWheelObject.didUserWin()){
                                 event.getChannel().sendMessage(jackpotWheelObject.thumbnailUrl).queue();
-                                event.getChannel().sendMessage(":tada: :tada: :tada: :tada: :partying_face: JACKPOT!!! :partying_face: :tada: :tada: :tada: :tada:\nhttps://c.tenor.com/nBX1KXnHfqQAAAAC/fishpog.gif").queueAfter(5, TimeUnit.SECONDS);
+                                event.getChannel().sendMessage(":tada: :tada: :tada: :tada: :partying_face: JACKPOT!!! AMOUNT: " + jackpotWheelObject.getJackpotVal() + ":partying_face: :tada: :tada: :tada: :tada:\nhttps://c.tenor.com/nBX1KXnHfqQAAAAC/fishpog.gif").queueAfter(5, TimeUnit.SECONDS);
                                 updateCredits(event, jackpotWheelObject.getJackpotVal(), true);
 
                                 //reset jackpot value
@@ -290,31 +299,38 @@ public class Commands extends ListenerAdapter {
                         break;
 
                     case "shop":
+                        //supports up to 25 fields then we need to make another embed
                         msgEmbed.setColor(Color.MAGENTA);
-                        msgEmbed.setTitle("SUSSY'S MEGACENTER™");
+                        msgEmbed.setTitle("<a:moneycash:1000225442260861018>SUSSY'S MEGACENTER™<a:moneycash:1000225442260861018>");
+                        msgEmbed.setDescription("Shop at Sussy's Megacenter today for Every Day Low Prices! <a:coinbag:1000231940793843822>\n");
+                        msgEmbed.setTimestamp(Instant.now());
+                        msgEmbed.setThumbnail("https://c.tenor.com/rgNhzkA41qIAAAAM/catjam-cat-jamming.gif");
                         msgEmbed.setImage("https://arc-anglerfish-arc2-prod-tronc.s3.amazonaws.com/public/YPZFICVQMRGXPMWDR2HVEEMTNA.jpg");
+                        msgEmbed.setFooter("© 2022 Sussy Inc. All Rights Reserved.");
                         Iterator comIterator = commandList.entrySet().iterator();
                         while(comIterator.hasNext()){
                             Map.Entry element = (Map.Entry)comIterator.next();
                             List<String> elementVal = (List<String>)element.getValue();
                             msgEmbed.addField((String)element.getKey(),"Price: $"+elementVal.get(1),false);
                         }
+
                         event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
                         msgEmbed.clear();
                         break;
 
                     case "purchase":
                         if(!(checkUser(event))){
-                            event.getChannel().sendMessage("Error 404 User does not exist please register using &signup to Gamba").queue();
+                            event.getChannel().sendMessage("Error 404 User does not exist please register using " +PREFIX + "signup to Gamba").queue();
                             break;
                         }
+                        if(!isCommandValid(event,args,"Error: wrong format use " + PREFIX + "help to see how command works",2)){break;}
 
                         if(!commandList.containsKey(args[1])){
                             event.getChannel().sendMessage("Error user requested purchase does not exist please check your request.").queue();
                             break;
                         }
                         //if the number of arguments is not enough throw an error
-                        if(!isCommandValid(event,args,"Error: wrong format please try again ex of purchasing kermit dance:  &purchase kermitdance",2)){break;}
+                        if(!isCommandValid(event,args,"Error: wrong format use " + PREFIX + "help to see how command works",2)){break;}
                         else{
                             //check users requests if its more than needed then do not allow them to gamble else allow
                             int request =  Integer.valueOf(commandList.get(args[1]).get(1));
@@ -335,11 +351,10 @@ public class Commands extends ListenerAdapter {
                     //goth users need to have mod command
                     case "ban":
                         if(!(checkUser(event))){
-                            event.getChannel().sendMessage("Error 404 User does not exist please register using &signup to Gamba").queue();
+                            event.getChannel().sendMessage("Error 404 User does not exist please register using " +PREFIX + "signup to Gamba").queue();
                             break;
                         }
-
-                        if(!isCommandValid(event,args,"Error: wrong format please try again ex: &bancommand (urlhere)",2)){break;}
+                        if(!isCommandValid(event,args,"Error: wrong format use " + PREFIX + "help to see how command works",2)){break;}
 
                         //checks if user is mod before using command
                         if(server.isUserMod(String.valueOf(event.getMember().getIdLong()))){
@@ -352,11 +367,11 @@ public class Commands extends ListenerAdapter {
 
                     case "addcommand":
                         if(!(checkUser(event))){
-                            event.getChannel().sendMessage("Error 404 User does not exist please register using &signup to Gamba").queue();
+                            event.getChannel().sendMessage("Error 404 User does not exist please register using " +PREFIX + "signup to Gamba").queue();
                             break;
                         }
 
-                        if(!isCommandValid(event,args,"Error: wrong format please try again format name url type cost ex: &addcommand nike (urlhere) gif 1000",4)){break;}
+                        if(!isCommandValid(event,args,"Error: wrong format use " + PREFIX + "help to see how command works",4)){break;}
 
                         //checks if user is mod before using command
                         if(server.isUserMod(String.valueOf(event.getMember().getIdLong()))){
@@ -371,10 +386,11 @@ public class Commands extends ListenerAdapter {
                     //bug space between code
                     case "sample":
                         if(!(checkUser(event))){
-                            event.getChannel().sendMessage("Error 404 User does not exist please register using &signup to Gamba").queue();
+                            event.getChannel().sendMessage("Error 404 User does not exist please register using " +PREFIX + "signup to Gamba").queue();
                             break;
                         }
-                        if(!isCommandValid(event,args,"Error: wrong format please try again ex: &sample kermitdance",2)){break;}
+
+                        if(!isCommandValid(event,args,"Error: wrong format use " + PREFIX + "help to see how command works",2)){break;}
 
                         if(commandList.containsKey(args[1])){
                             event.getMember().getUser().openPrivateChannel().flatMap(

@@ -1,6 +1,5 @@
 package org.example;
 
-import com.mongodb.internal.connection.Server;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.util.ArrayList;
@@ -26,6 +25,8 @@ public class CoinFlip {
     public String compGuess;
     public int userReq = 0;
     public int userBalance = 0;
+    public int coinGameMinAmount = 0;
+    public int coinGameMaxAmount = 1000;
 
     public void clearGame(){
         thumbnailUrl = "";
@@ -65,7 +66,7 @@ public class CoinFlip {
                 int balance = Integer.valueOf(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
 
             //handle if user requests less than 0 throw error
-            if (request <= 0  ||  request > 250){
+            if (request <= coinGameMinAmount  ||  request > coinGameMaxAmount){
                 event.getChannel().sendMessage("Error: please specify a valid amount you would like to bet range 1-250").queue();
                 return false;
             }

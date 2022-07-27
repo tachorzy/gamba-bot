@@ -69,7 +69,7 @@ public class JackpotWheel {
             return true;
         }
         thumbnailUrl = loseGifs.get((new Random().nextInt(loseGifs.size())));
-        jackpotVal += 250;
+        jackpotVal += 300;
         return false;
     }
 
@@ -77,7 +77,7 @@ public class JackpotWheel {
     public boolean validBalance(DataBase server,MessageReceivedEvent event){
         try{
             //check users requests if its more than needed then do not allow them to gamble else allow
-            int request = 500;
+            int request = 100;
             int balance = Integer.valueOf(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
 
             //check if user has enough funds

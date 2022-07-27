@@ -21,7 +21,7 @@ To calculate if user won from what emoji they caught
 */
 public class Fishing {
     HashMap<Integer, List<String>> critterList = new HashMap<Integer,List<String>>();
-    ArrayList<Integer> rewardPointsList = new ArrayList<Integer>(Arrays.asList(0,5,10,15,20,35,45,75,100,200,500));
+    ArrayList<Integer> rewardPointsList = new ArrayList<Integer>(Arrays.asList(0,15,20,25,30,40,50,60,85,125,275));
     List<String> critterTable = new ArrayList<String>();
     public String critterChosen;
     public Integer compGuess;
@@ -32,16 +32,16 @@ public class Fishing {
     //constructor
     public Fishing(){
        critterList.put(0,new ArrayList<String>(Arrays.asList(":boot:",":shirt:",":athletic_shoe:")));
-       critterList.put(5,new ArrayList<String>(Arrays.asList(":blowfish:",":lizard:",":frog:",":snake:")));
-       critterList.put(10,new ArrayList<String>(Arrays.asList(":squid:",":shrimp:")));
-       critterList.put(15,new ArrayList<String>(Arrays.asList(":crab:")));
-       critterList.put(20,new ArrayList<String>(Arrays.asList(":tropical_fish:")));
-       critterList.put(35,new ArrayList<String>(Arrays.asList(":lobster:")));
-       critterList.put(45,new ArrayList<String>(Arrays.asList(":dolphin:")));
-       critterList.put(75,new ArrayList<String>(Arrays.asList(":shark:")));
-       critterList.put(100,new ArrayList<String>(Arrays.asList(":whale:")));
-       critterList.put(200,new ArrayList<String>(Arrays.asList(":coin:")));
-       critterList.put(500,new ArrayList<String>(Arrays.asList(":crown:")));
+       critterList.put(15,new ArrayList<String>(Arrays.asList(":blowfish:",":lizard:",":frog:",":snake:")));
+       critterList.put(20,new ArrayList<String>(Arrays.asList(":squid:",":shrimp:")));
+       critterList.put(25,new ArrayList<String>(Arrays.asList(":crab:")));
+       critterList.put(30,new ArrayList<String>(Arrays.asList(":tropical_fish:")));
+       critterList.put(40,new ArrayList<String>(Arrays.asList(":lobster:")));
+       critterList.put(50,new ArrayList<String>(Arrays.asList(":dolphin:")));
+       critterList.put(60,new ArrayList<String>(Arrays.asList(":shark:")));
+       critterList.put(85,new ArrayList<String>(Arrays.asList(":whale:")));
+       critterList.put(125,new ArrayList<String>(Arrays.asList(":coin:")));
+       critterList.put(275,new ArrayList<String>(Arrays.asList(":crown:")));
     }
 
     //reset the game
@@ -78,7 +78,7 @@ public class Fishing {
     public boolean validBalance(DataBase server, MessageReceivedEvent event) {
         try {
             //check users requests if its more than needed then do not allow them to gamble else allow
-            int request = 10;
+            int request = 20;
             int balance = Integer.valueOf(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
 
             //check if user has enough funds

@@ -24,6 +24,9 @@ public class DiceRoll {
     public int compGuess;
     public int userReq = 0;
     public int userBalance = 0;
+    public int diceGameMinAmount = 500;
+    public int diceGameMaxAmount = 7000;
+
     public boolean betMultipler = false;
 
     //reset variables
@@ -127,8 +130,8 @@ public class DiceRoll {
             int balance = Integer.valueOf(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
 
             //handle if user requests less than 0 throw error
-            if (request < 500  ||  request > 2000){
-                event.getChannel().sendMessage("Error: please specify a valid amount you would like to bet range 500-2000").queue();
+            if (request < diceGameMinAmount  ||  request > diceGameMaxAmount){
+                event.getChannel().sendMessage("Error: please specify a valid amount you would like to bet range " + diceGameMinAmount + "-" + diceGameMaxAmount ).queue();
                 return false;
             }
             //check if user has enough funds

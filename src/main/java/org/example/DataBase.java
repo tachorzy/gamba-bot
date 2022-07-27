@@ -52,9 +52,10 @@ public class DataBase {
     public MongoCollection <Document> collectionUser;
     public MongoCollection <Document> collectionCommands;
     public MongoCollection <Document> collectionBanUrl;
+    public MongoCollection <Document> collectionBadge;
 
     //constructor
-    public DataBase(String TOKEN, String dbName, String colName, String colCom ,String colBanUrl) {
+    public DataBase(String TOKEN, String dbName, String colName, String colCom ,String colBanUrl,String colBadge) {
 
         //connect to the database to then obtain certain collections
         client = MongoClients.create(TOKEN);
@@ -62,6 +63,7 @@ public class DataBase {
         collectionUser = db.getCollection(colName);
         collectionCommands = db.getCollection(colCom);
         collectionBanUrl = db.getCollection(colBanUrl);
+        collectionBadge = db.getCollection(colBadge);
     }
 
     //Create a new user and insert into the database
