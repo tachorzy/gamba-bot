@@ -1,7 +1,9 @@
 package org.example;
+//package net.dv8tion.jda.api.interactions.components.selections;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
 
 import java.awt.*;
 import java.util.HashMap;
@@ -9,7 +11,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.lang.StringBuilder;
 import java.util.*;
 
 /*
@@ -48,7 +49,6 @@ public class Commands extends ListenerAdapter {
     public EmbedBuilder msgEmbed = new EmbedBuilder();
     public HashMap<String, List<String>> commandList;
     public HashMap<String, List<String>> badgeList;
-
 
     //Constructor
     public Commands(DataBase db, Character prefixVal ,CoinFlip coinFlipObj, DiceRoll diceRollObj, JackpotWheel jackpotwheelObj,Fishing fishingObj){
@@ -93,8 +93,10 @@ public class Commands extends ListenerAdapter {
         String badge;
         if(badgeDetails.get(2).equals("gif"))
             return badge = "<a:" + badgeName + ":" + badgeDetails.get(0) + "> " + badgeDetails.get(1);
-        else
+        else if(badgeDetails.get(2).equals("png"))
             return badge = "<:" + badgeName  + ":" + badgeDetails.get(0) + "> " + badgeDetails.get(1);
+        else
+            return badgeDetails.get(0) + " " + badgeDetails.get(1);
     }
 
     @Override
@@ -321,6 +323,8 @@ public class Commands extends ListenerAdapter {
                         msgEmbed.setTitle("SUSSY'S MEGACENTER™ \uD83D\uDED2");
                         msgEmbed.setImage("https://arc-anglerfish-arc2-prod-tronc.s3.amazonaws.com/public/YPZFICVQMRGXPMWDR2HVEEMTNA.jpg");
                         Iterator comIterator = commandList.entrySet().iterator();
+                        //this is NOT efficient when it comes to storage and time complexity but you know what..... FUCK IT I need to just get this hashmap sorted.
+
                         while(comIterator.hasNext()){
                             Map.Entry element = (Map.Entry)comIterator.next();
                             List<String> elementVal = (List<String>)element.getValue();
@@ -411,6 +415,24 @@ public class Commands extends ListenerAdapter {
                         else{ event.getChannel().sendMessage("Command does not exist " + "<@" + event.getMember().getId() + ">").queue(); }
                         break;
 
+                    case "badgeshop":
+                        msgEmbed.setColor(Color.MAGENTA);
+                        //msgEmbed.setTitle("SUSSY'S MEGACENTER™ \uD83D\uDED2");
+                        //msgEmbed.setImage("https://arc-anglerfish-arc2-prod-tronc.s3.amazonaws.com/public/YPZFICVQMRGXPMWDR2HVEEMTNA.jpg");
+                        System.out.println("NUMBER OF BADGES: " + badgeList.size() + "\nNUMBER OF BADGES IN SET VIEW: " + badgeList.entrySet().size());
+                        Iterator badgeIterator = badgeList.entrySet().iterator();
+
+                        while(badgeIterator.hasNext()){
+                            Map.Entry element = (Map.Entry)badgeIterator.next();
+                            System.out.println("CURRENT ELEM: " + (String)element.getKey());
+                            List<String> elementVal = (List<String>)element.getValue();
+                            msgEmbed.addField((String)element.getKey() + "\n" + buildBadge(elementVal,(String)element.getKey()),"\n<:cash:1000666403675840572> Price: $"+elementVal.get(3),true);
+                        }
+
+                        event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
+                        msgEmbed.clear();
+                        break;
+
                     case "addbadge":
                         if(!badgeList.containsKey(args[1])){
                             event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> Error user requested purchase does not exist please check your request.").queue();
@@ -424,18 +446,22 @@ public class Commands extends ListenerAdapter {
                         List<String> badgeDetails = badgeList.get(args[1]);
                         ArrayList<String> userBadges = server.getUserBadges(event.getMember().getId());
 
+                        if(userBadges.contains(buildBadge(badgeDetails, args[1]))) { event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> You already have this badge displayed.").queue();
+                            break;
+                        }
+
                         if(userBadges.size() >= 4){
                             event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> You currently have the *maximum* amount of badges that can be equipped at a time.\n" +
                                     "\t   Please choose a badge that you'd like to replace from your card. Use command: **&replacebadge 'oldbadge' 'newbadge**\n\t  《 " + userBadges.get(0) + " | " + userBadges.get(1) + " | " + userBadges.get(2) + " | "+ userBadges.get(3) + " 》").queue();
                             break;
                         }
                         System.out.println(badgeDetails);
-                        if(userBadges.contains(buildBadge(badgeDetails, args[1]))) { event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> You already have this badge displayed.").queue();
-                            break;
-                        }
+                        System.out.println(args[1]);
+
+
 
                         server.addBadge(event.getMember().getId(), buildBadge(badgeDetails, args[1]));
-
+                        event.getChannel().sendMessage("Your new badge has been added to your credit card, enjoy!!! <a:pepeDS:1000094640269185086>").queue();
                         break;
 
                     case "replacebadge":
@@ -451,8 +477,13 @@ public class Commands extends ListenerAdapter {
                         userBadges = server.getUserBadges(event.getMember().getId());
                         System.out.println(userBadges);
                         System.out.println(oldbadgeDetails);
+
                         if(!userBadges.contains(buildBadge(oldbadgeDetails, args[1]))) {
                             event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> Error user requested to a replace badge that they don't have displayed.").queue();
+                            break;
+                        }
+                        if(userBadges.contains(buildBadge(newbadgeDetails, args[2]))) {
+                            event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> You already have this badge displayed.").queue();
                             break;
                         }
                         server.removeBadge(event.getMember().getId(), buildBadge(oldbadgeDetails, args[1]));
@@ -467,10 +498,12 @@ public class Commands extends ListenerAdapter {
                             break;
                         }
                         server.removeBadge(event.getMember().getId(), buildBadge(badgeList.get(args[1]), args[1]));
+                        event.getChannel().sendMessage("Badge successfully removed from your credit card, and is now returned to your inventory.").queue();
                         break;
 
                     case "clearbadges":
                         server.clearBadges(event.getMember().getId());
+                        event.getChannel().sendMessage("All badges from your credit card were cleared and are now in your inventory").queue();
                         break;
                     //adds a badge into the database (warning: VERY BUGGY
                     case "createbadge":
@@ -489,6 +522,9 @@ public class Commands extends ListenerAdapter {
                             //badgeListList = server.obtainCommands();
                         }
                         else{ event.getChannel().sendMessage("Weak pleb no powers for you !holdL :fishpain:").queue(); }
+                        break;
+                    case "pa69":
+                        event.getChannel().sendMessage("Ali, it is not allowed to use global variables on Programming Assignment 69. If you dare try to use a global variable you will pay the ultimate price. And remember there will be no curve, THERE WILL BE NO HOPE.<a:NoCurve:1000845866183164017>\nBest Regards,\nCarlos Alberto Rincon Castro").queue();
                         break;
                     default:
                         break;

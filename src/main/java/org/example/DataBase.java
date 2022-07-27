@@ -219,10 +219,8 @@ public class DataBase {
     public void removeBadge(String userID, String badge) {
         Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
         if(userInfo != null) {
-            System.out.println("REMOVING BADGE..." + badge);
             Bson updatedValue = new Document("badges", badge);
             Bson updatedOperation = new Document("$pull", updatedValue);
-            System.out.println("PULL BADGE.");
             collectionUser.updateOne(userInfo, updatedOperation);
         }
     }
@@ -267,4 +265,5 @@ public class DataBase {
         }
         return badgeTable;
     }
+
 }

@@ -72,7 +72,7 @@ public  class DiscordBot {
         //NOTE: if you want to create a new class for a new feature implementation, create a new object below
         bot.addEventListener(new Commands(new DataBase(DBTOKEN,databaseName,collectionUser,collectionCommands,collectionBanUrl, collectionBadge),prefixVal,new CoinFlip(),new DiceRoll(),new JackpotWheel(),new Fishing()));
         System.out.println("Bot is up and running!");
-
+        
     }
 }
 
