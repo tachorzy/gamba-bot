@@ -9,5 +9,8 @@
         <module name="botjavadiscord" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="gamba" target="15" />
+    </bytecodeTargetLevel>
   </component>
 </project>

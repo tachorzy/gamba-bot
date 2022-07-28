@@ -52,7 +52,7 @@ public class DataBase {
     public MongoCollection <Document> collectionUser;
     public MongoCollection <Document> collectionCommands;
     public MongoCollection <Document> collectionBanUrl;
-    public MongoCollection <Document> collectionBadge;
+    public MongoCollection <Document> collectionBadges;
 
     //constructor
     public DataBase(String TOKEN, String dbName, String colName, String colCom ,String colBanUrl,String colBadge) {
@@ -63,7 +63,7 @@ public class DataBase {
         collectionUser = db.getCollection(colName);
         collectionCommands = db.getCollection(colCom);
         collectionBanUrl = db.getCollection(colBanUrl);
-        collectionBadge = db.getCollection(colBadge);
+        collectionBadges = db.getCollection(colBadge);
     }
 
     //Create a new user and insert into the database
@@ -174,4 +174,98 @@ public class DataBase {
         if(userInfo.get("moderator") == null){ return false; }
         return (boolean)userInfo.get("moderator");
     }
+
+    //clears a user's badge slots from the database
+    public void clearBadges(String userID){
+        System.out.println("SETTING BADGES FOR USER: " + userID);
+        Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
+        if(userInfo == null) { return; }
+        if(isUserMod(userID)){
+            System.out.println("SETTING BADGES...");
+            List<String> badges = new ArrayList<String>(5);
+            Bson updatedValue = new Document("badges", badges);
+            Bson updatedOperation = new Document("$set", updatedValue);       //set allows the document to be updated
+            collectionUser.updateOne(userInfo,updatedOperation);
+        }
+    }
+
+    //adds a badge into a user's inventory by granting them the permissions to use it
+    public void addBadgePermission(String userID, String badge){
+        Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
+
+        //if the document/user is found apply update the document and send it to MongoDB
+        if(userInfo != null){
+            Bson updatedValue = new Document(badge,true);
+            Bson updatedOperation = new Document("$set", updatedValue);       //set allows the document to be updated
+            collectionUser.updateOne(userInfo,updatedOperation);
+        }
+    }
+
+    //adds a badge to a user's badge slots in the database
+    public void addBadge(String userID, String badgeID) {
+        Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
+        if(userInfo != null) {
+            System.out.println("ADDING BADGE...");
+            Bson updatedValue = new Document("badges", badgeID);
+            Bson updatedOperation = new Document("$push", updatedValue);
+            collectionUser.updateOne(userInfo, updatedOperation);
+        }
+    }
+
+    //removes a badge from the user's badge slots
+    public void removeBadge(String userID, String badge) {
+        Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
+        if(userInfo != null) {
+            Bson updatedValue = new Document("badges", badge);
+            Bson updatedOperation = new Document("$pull", updatedValue);
+            collectionUser.updateOne(userInfo, updatedOperation);
+        }
+    }
+
+    //returns the user's badge slots
+    public ArrayList<String> getUserBadges(String userID){
+        Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
+        if(userInfo == null) {return null;}
+        return (ArrayList<String>) userInfo.get("badges");
+    }
+
+    //adds a badge document into the database under the badge collection
+    public void insertBadge(String badgeName,String id, String type, String cost, String tag){
+        Document documentCom = new Document();
+        documentCom.append("id",id);
+        documentCom.append("badgeName", badgeName);
+        documentCom.append("tag", tag);
+        documentCom.append("type",type);
+        documentCom.append("cost",cost);
+        collectionBadges.insertOne(documentCom);
+    }
+
+    //returns a hashmap of each badge's key value pairs in the badge collection; to use locally
+    public HashMap<String,List<String>> obtainBadges(){
+        HashMap<String, List<String>> badgeTable = new HashMap<>();
+        FindIterable<Document> iterDoc = collectionBadges.find();
+        Iterator iteratorCursor = iterDoc.iterator();
+
+        //iterate using the cursor and store into hashmap
+        while (iteratorCursor.hasNext()) {
+            Document currentDoc = (Document)iteratorCursor.next();
+            badgeTable.put(
+                    //key
+                    (String)currentDoc.get("command"),
+                    //value
+                    Arrays.asList(
+                            (String)currentDoc.get("_id"), //BROKEN NEED TO CHANGE THIS FIELD FROM _ID TO EMOTEID (STRING)
+                            (String)currentDoc.get("tag"),
+                            (String)currentDoc.get("type"),
+                            (String)currentDoc.get("cost")
+                    ));
+        }
+        return badgeTable;
+    }
+
+
+
+
+
+
 }
