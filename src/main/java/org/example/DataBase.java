@@ -72,6 +72,8 @@ public class DataBase {
         Document document = new Document();
         document.append("discordid", userID);
         document.append("credits", "3380");
+        document.append("badges", new String[] { null, null, null,null,null});
+        document.append("inventory", new String[32]);
         collectionUser.insertOne(document);
     }
 
@@ -99,6 +101,13 @@ public class DataBase {
         Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
         return (String) userInfo.get("credits");
     }
+
+    public ArrayList<String> getUserInventory(String userID){
+        Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
+        if(userInfo == null) {return null;}
+        return (ArrayList<String>) userInfo.get("inventory");
+    }
+
 
     //allows moderators to add a new command into the the database collection  which can then be purchased by users in discord channel
     public void insertCommand(String commandName,String url, String type, String cost){
@@ -177,18 +186,26 @@ public class DataBase {
 
     //clears a user's badge slots from the database
     public void clearBadges(String userID){
-        System.out.println("SETTING BADGES FOR USER: " + userID);
         Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
         if(userInfo == null) { return; }
         if(isUserMod(userID)){
-            System.out.println("SETTING BADGES...");
             List<String> badges = new ArrayList<String>(5);
             Bson updatedValue = new Document("badges", badges);
             Bson updatedOperation = new Document("$set", updatedValue);       //set allows the document to be updated
             collectionUser.updateOne(userInfo,updatedOperation);
         }
     }
-
+    //destroys everything in your inventory...
+    public void discardInventory(String userID){
+        Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
+        if(userInfo == null) { return; }
+        if(isUserMod(userID)){
+            List<String> inventory = new ArrayList<String>(0);
+            Bson updatedValue = new Document("inventory", inventory);
+            Bson updatedOperation = new Document("$set", updatedValue);       //set allows the document to be updated
+            collectionUser.updateOne(userInfo,updatedOperation);
+        }
+    }
     //adds a badge into a user's inventory by granting them the permissions to use it
     public void addBadgePermission(String userID, String badge){
         Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
@@ -201,8 +218,8 @@ public class DataBase {
         }
     }
 
-    //adds a badge to a user's badge slots in the database
-    public void addBadge(String userID, String badgeID) {
+    //equips a badge to a user's badge slots in the database
+    public void equipBadge(String userID, String badgeID) {
         Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
         if(userInfo != null) {
             System.out.println("ADDING BADGE...");
@@ -212,8 +229,8 @@ public class DataBase {
         }
     }
 
-    //removes a badge from the user's badge slots
-    public void removeBadge(String userID, String badge) {
+    //unequips a badge from the user's badge slots
+    public void unequipBadge(String userID, String badge) {
         Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
         if(userInfo != null) {
             Bson updatedValue = new Document("badges", badge);
@@ -222,6 +239,25 @@ public class DataBase {
         }
     }
 
+    //adds a badge to inventory
+    public void addBadge(String userID, String badge, String badgeID) {
+        Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
+        if(userInfo != null) {
+            Bson updatedValue = new Document("inventory", badge + "\n" + badgeID);
+            Bson updatedOperation = new Document("$push", updatedValue);
+            collectionUser.updateOne(userInfo, updatedOperation);
+        }
+    }
+
+    //removes a badge from inventory
+    public void removeBadge(String userID, String badge, String badgeID) {
+        Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
+        if(userInfo != null) {
+            Bson updatedValue = new Document("inventory", badge + "\n" + badgeID);
+            Bson updatedOperation = new Document("$pull", updatedValue);
+            collectionUser.updateOne(userInfo, updatedOperation);
+        }
+    }
     //returns the user's badge slots
     public ArrayList<String> getUserBadges(String userID){
         Document userInfo = collectionUser.find(new Document("discordid",userID)).first();

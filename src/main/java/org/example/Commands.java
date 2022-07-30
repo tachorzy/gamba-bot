@@ -44,6 +44,8 @@ public class Commands extends ListenerAdapter {
     public Fishing fishingObject;
     public EmbedBuilder msgEmbed = new EmbedBuilder();
     public EmbedBuilder msgEmbed2 = new EmbedBuilder();
+    public EmbedBuilder msgEmbed3 = new EmbedBuilder();
+
     public HashMap<String, List<String>> commandList;
     public HashMap<String, List<String>> badgeList;
 
@@ -133,9 +135,10 @@ public class Commands extends ListenerAdapter {
                         msgEmbed.addField("ban", "PERMISSION: MOD\nbans url/image/gif etc requested \nEX: " + PREFIX + "ban (url here)",false);
                         msgEmbed.addField("creditcard","displays users balance \nEX: " + PREFIX + "creditcard",false);
                         msgEmbed.addField("help","displays embed of commands to user \nEX: " + PREFIX + "help",false);
-                        msgEmbed.addField("purchase", "Makes a request to buy a specific command if user has enough money for specific command \nEX: " + PREFIX + "purchase kermitdance",false);
+                        msgEmbed.addField("buy", "Used to purchase a specific command or badge with credits. \nEX: " + PREFIX + "buy command kermitdance or " + PREFIX + "buy badge CougarCS",false);
                         msgEmbed.addField("signup","Signs up new user to be able to gamba \nEX: " + PREFIX + "signup",false);
                         msgEmbed.addField("shop", "Shows Sussy's Megacenter for commands on sale \nEX: " + PREFIX + "shop",false);
+                        msgEmbed.addField("badgeshop", "Shows shop for credit card badges \nEX: " + PREFIX + "badgeshop",false);
                         msgEmbed.addField("sample", "Samples a specific command and dms to user how it would look when user uses specific command \nEX: " + PREFIX + "sample kermitdance",false);
 
                         msgEmbed2.setColor(Color.YELLOW);
@@ -148,9 +151,19 @@ public class Commands extends ListenerAdapter {
                         msgEmbed2.addField("jackpotsize", "returns jackpot size for spinwheel \nEX: " + PREFIX + "jackspotsize",false);
                         msgEmbed2.addField("spinwheel", "Initial Jackpot Value: 30,000\nCost per spin: 100 \n EX: " + PREFIX + "spinwheel",false);
 
-                        event.getChannel().sendMessageEmbeds(msgEmbed.build(),msgEmbed2.build()).queue();
+                        msgEmbed3.setColor(Color.YELLOW);
+                        msgEmbed3.setTitle("Reward System:");
+                        msgEmbed3.setDescription("With credits users can buy rewards from the shop such as credit card **badges** and media **commands**. In the **badgeshop**, you can find badges that " +
+                                "you can buy and equip to your **credit card**. Your credit card has **4 badge slots** but comes with an **inventory** of 32 slots. You can access your inventory with the command: " + PREFIX + "inventory");
+                        msgEmbed3.addField("Badge Commands:", "**equipbadge** equips a badge that you have in your inventory but not displayed on your credit card. \nEX: " + PREFIX + "equipbadge CodeCoogs" +
+                                "\n**unequipbadge** unequips a badge that is displayed on your credit card. \nEX: " + PREFIX + "unequipbadge CodeCoogs \n**clearbadges** wipes your credit card of badges, but keeps them in your inventory " +
+                                "\nEX: " + PREFIX + "clearbadges \n**inventory** displays your inventory of badges\nEX: " + PREFIX + "inventory \n**wipeinventory** deletes all badges in your inventory and credit card. **WARNING: IRREVERSIBLE**. " +
+                                "\nEX: " + PREFIX + "wipeinventory",false);
+                        event.getChannel().sendMessageEmbeds(msgEmbed.build(),msgEmbed2.build(),msgEmbed3.build()).queue();
                         msgEmbed.clear();
                         msgEmbed2.clear();
+                        msgEmbed3.clear();
+
                         break;
 
                     //retrieves users "credit card"
@@ -159,12 +172,19 @@ public class Commands extends ListenerAdapter {
                             event.getChannel().sendMessage("Error: please specify a valid amount you would like to bet").queue();
                             break;
                         }
+                        ArrayList<String> badges = server.getUserBadges(String.valueOf(event.getAuthor().getIdLong()));
+                        if(event.getMember().getNickname() != null){ msgEmbed.setTitle(event.getMember().getNickname() + " [" + event.getAuthor().getAsTag() + "]"); }
+                        else { msgEmbed.setTitle(event.getAuthor().getAsTag()); }
                         //build embed to display to user
                         msgEmbed.setColor(Color.RED);
-                        msgEmbed.setTitle(event.getAuthor().getAsTag());
                         msgEmbed.setThumbnail(event.getAuthor().getAvatarUrl());
-                        msgEmbed.setDescription("ID:" + event.getAuthor().getId() + "\nCredits: " + server.getUserCredits(String.valueOf(event.getAuthor().getIdLong())));
                         msgEmbed.setFooter("City: Waka Waka eh eh");
+                        String description = "ID:" + event.getAuthor().getId() + "\nCredits: " + server.getUserCredits(String.valueOf(event.getAuthor().getIdLong())) + "\n**Badges:**\n";
+                        if(badges.isEmpty() == false){
+                            for(int i = 0; i < badges.size(); i++)
+                                description += badges.get(i) + "\n";
+                        }
+                        msgEmbed.setDescription(description);
                         event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
                         msgEmbed.clear();
                         break;
@@ -177,7 +197,7 @@ public class Commands extends ListenerAdapter {
                         }
                         else{
                             server.insertUser(String.valueOf(event.getMember().getIdLong()));
-                            String message = "<@" + event.getJDA().getSelfUser().getIdLong() + ">" + " has bestowed you the lifestyle of Gamba Addiction";
+                            String message = "<a:GAMBAcoin:1000521727647952896> **WELCOME!** <@" + event.getJDA().getSelfUser().getIdLong() + ">" + " has bestowed you the lifestyle of Gamba Addiction <a:GAMBAcoin:1000521727647952896>";
                             event.getChannel().sendMessage(message).queue();
                             event.getChannel().sendMessage("https://c.tenor.com/P6jRgqCgB4EAAAAd/catjam.gif").queue();
                         }
@@ -199,7 +219,7 @@ public class Commands extends ListenerAdapter {
                                 updateCredits(event, fishingObject.userReq, true);
                             }
                             else{
-                                event.getChannel().sendMessage("You caught a: " + fishingObject.getCritter() + " which is illegal under Sussy conservation laws, you lost 125 just  credits !holdL").queue();
+                                event.getChannel().sendMessage("You caught a: " + fishingObject.getCritter() + " which is illegal under Sussy conservation laws, you have been fined 125 credits !holdL <a:policeBear:1002340283364671621>").queue();
                                 updateCredits(event, 125, false);
                             }
                         }
@@ -329,33 +349,82 @@ public class Commands extends ListenerAdapter {
                         msgEmbed.clear();
                         break;
 
-                    case "purchase":
-                        if(!(checkUser(event))){
-                            event.getChannel().sendMessage("Error 404 User does not exist please register using " +PREFIX + "signup to Gamba").queue();
-                            break;
-                        }
-                        if(!isCommandValid(event,args,"Error: wrong format use " + PREFIX + "help to see how command works",2)){break;}
+                    case "badgeshop":
+                        msgEmbed.setColor(Color.MAGENTA);
+                        //msgEmbed.setTitle("SUSSY'S MEGACENTER™ \uD83D\uDED2");
+                        //msgEmbed.setImage("https://arc-anglerfish-arc2-prod-tronc.s3.amazonaws.com/public/YPZFICVQMRGXPMWDR2HVEEMTNA.jpg");
+                        Iterator badgeIterator = badgeList.entrySet().iterator();
 
-                        if(!commandList.containsKey(args[1])){
-                            event.getChannel().sendMessage("Error user requested purchase does not exist please check your request.").queue();
+                        while(badgeIterator.hasNext()){
+                            Map.Entry element = (Map.Entry)badgeIterator.next();
+                            List<String> elementVal = (List<String>)element.getValue();
+                            msgEmbed.addField((String)element.getKey() + "\n" + buildBadge(elementVal,(String)element.getKey()),"\n<:cash:1000666403675840572> Price: $"+elementVal.get(3),true);
+                        }
+
+                        event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
+                        msgEmbed.clear();
+                        break;
+
+                    case "buy":
+                        if(!(checkUser(event))){
+                            event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> Error 404 User does not exist please register using " +PREFIX + "signup to Gamba").queue();
                             break;
                         }
+                        if(!isCommandValid(event,args,"<a:exclamationmark:1000459825722957905> Error: wrong format use " + PREFIX + "help to see how command works",2)){break;}
+
                         //if the number of arguments is not enough throw an error
-                        if(!isCommandValid(event,args,"Error: wrong format use " + PREFIX + "help to see how command works",2)){break;}
-                        else{
+                        if(!isCommandValid(event,args,"<a:exclamationmark:1000459825722957905> Error: wrong format use " + PREFIX + "help to see how command works",3)){break;}
+
+                        else if(args[1].equals("command")){
+                            if(!commandList.containsKey(args[2])){
+                                event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> Error user requested purchase does not exist please check your request.").queue();
+                                break;
+                            }
                             //check users requests if its more than needed then do not allow them to gamble else allow
-                            int request =  Integer.valueOf(commandList.get(args[1]).get(1));
+                            int request =  Integer.valueOf(commandList.get(args[2]).get(1));
                             int balance = Integer.valueOf(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
 
                             //check if user has enough funds
-                            if (request > balance) {
-                                event.getChannel().sendMessage("Error Insufficient Funds").queue();
-                            }
+                            if (request > balance) { event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> Error Insufficient Funds").queue(); }
                             else{
-                                updateCredits(event,Integer.valueOf(commandList.get(args[1]).get(1)),false);
-                                server.addCommandPermission(String.valueOf(event.getMember().getIdLong()),args[1]);
+                                updateCredits(event,Integer.valueOf(commandList.get(args[2]).get(1)),false);
+                                server.addCommandPermission(String.valueOf(event.getMember().getIdLong()),args[2]);
                                 event.getChannel().sendMessage("Purchase sucessfully completed! :partying_face:").queue();
                             }
+                        }
+                        else if(args[1].equals("badge")) {
+                            if(!badgeList.containsKey(args[2])){
+                                event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> Error user requested purchase does not exist please check your request.").queue();
+                                break;
+                            }
+
+                            int request = Integer.valueOf(badgeList.get(args[2]).get(3));
+                            int balance = Integer.valueOf(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
+
+                            if (request > balance) { event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> Error Insufficient Funds").queue(); break; }
+
+                            List<String> badgeDetails = badgeList.get(args[2]);
+                            ArrayList<String> userBadges = server.getUserBadges(event.getMember().getId());
+                            ArrayList<String> userInventory = server.getUserInventory(event.getMember().getId());
+
+                            if(userBadges.contains(buildBadge(badgeDetails, args[2])) || userInventory.contains(args[2])) {
+                                event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> You already have this badge either displayed or in inventory.").queue();
+                                break;
+                            }
+
+                            //transaction is done, and adds badge to user inventory before equipping the badge
+                            updateCredits(event,Integer.valueOf(badgeList.get(args[2]).get(3)),false);
+                            server.addBadge(String.valueOf(event.getMember().getIdLong()),args[2], buildBadge(badgeDetails, args[2]));
+                            event.getChannel().sendMessage("Transaction complete... your new badge has been added to your inventory. <:box:1002451287406805032>").queue();
+
+                            if(userBadges.size() >= 4){ //checking if you have an available badge slot.
+                                event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> You currently have the *maximum* amount of badges that can be equipped at a time.\n" +
+                                        "\t   In order to equip your new badge, please choose a badge that you'd like to replace from your card. Use command: **&replacebadge 'oldbadge' 'newbadge**\n\t  《 " + userBadges.get(0) + " | " + userBadges.get(1) + " | " + userBadges.get(2) + " | "+ userBadges.get(3) + " 》").queue();
+                                break;
+                            }
+
+                            server.equipBadge(event.getMember().getId(), buildBadge(badgeDetails, args[2]));
+                            event.getChannel().sendMessage("Your new badge has been added to your credit card, enjoy!!! <a:pepeDS:1000094640269185086>").queue();
                         }
                         break;
 
@@ -409,66 +478,25 @@ public class Commands extends ListenerAdapter {
                         }
                         else{ event.getChannel().sendMessage("Command does not exist " + "<@" + event.getMember().getId() + ">").queue(); }
                         break;
-                    case "badgeshop":
-                        msgEmbed.setColor(Color.MAGENTA);
-                        //msgEmbed.setTitle("SUSSY'S MEGACENTER™ \uD83D\uDED2");
-                        //msgEmbed.setImage("https://arc-anglerfish-arc2-prod-tronc.s3.amazonaws.com/public/YPZFICVQMRGXPMWDR2HVEEMTNA.jpg");
-                        Iterator badgeIterator = badgeList.entrySet().iterator();
-
-                        while(badgeIterator.hasNext()){
-                            Map.Entry element = (Map.Entry)badgeIterator.next();
-                            List<String> elementVal = (List<String>)element.getValue();
-                            msgEmbed.addField((String)element.getKey() + "\n" + buildBadge(elementVal,(String)element.getKey()),"\n<:cash:1000666403675840572> Price: $"+elementVal.get(3),true);
-                        }
-
-                        event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
-                        msgEmbed.clear();
-                        break;
-
-                    case "addbadge":
-                        if(!badgeList.containsKey(args[1])){
-                            event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> Error user requested purchase does not exist please check your request.").queue();
-                            break;
-                        }
-
-                        if(!isCommandValid(event,args,"<a:exclamationmark:1000459825722957905> Error: wrong format " +
-                                "please try again ex of purchasing kermit dance:  &purchase kermitdance",2)){ break; }
-
-                        //search the hashmap for the badge
-                        List<String> badgeDetails = badgeList.get(args[1]);
-                        ArrayList<String> userBadges = server.getUserBadges(event.getMember().getId());
-
-                        if(userBadges.contains(buildBadge(badgeDetails, args[1]))) { event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> You already have this badge displayed.").queue();
-                            break;
-                        }
-
-                        if(userBadges.size() >= 4){
-                            event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> You currently have the *maximum* amount of badges that can be equipped at a time.\n" +
-                                    "\t   Please choose a badge that you'd like to replace from your card. Use command: **&replacebadge 'oldbadge' 'newbadge**\n\t  《 " + userBadges.get(0) + " | " + userBadges.get(1) + " | " + userBadges.get(2) + " | "+ userBadges.get(3) + " 》").queue();
-                            break;
-                        }
-                        System.out.println(badgeDetails);
-                        System.out.println(args[1]);
-
-
-
-                        server.addBadge(event.getMember().getId(), buildBadge(badgeDetails, args[1]));
-                        event.getChannel().sendMessage("Your new badge has been added to your credit card, enjoy!!! <a:pepeDS:1000094640269185086>").queue();
-                        break;
 
                     case "replacebadge":
-                        if(!badgeList.containsKey(args[2]) || !badgeList.containsKey(args[1])){
+                        if(!badgeList.containsKey(args[1]) || !badgeList.containsKey(args[2])){
                             event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> Error user requested badge does not exist please check your request.").queue();
                             break;
                         }
 
                         if(!isCommandValid(event,args,"<a:exclamationmark:1000459825722957905> Error: wrong format " +
                                 "please try again ex of purchasing kermit dance:  &purchase kermitdance",2)){ break; }
+
                         List<String> oldbadgeDetails = badgeList.get(args[1]);
                         List<String> newbadgeDetails = badgeList.get(args[2]);
-                        userBadges = server.getUserBadges(event.getMember().getId());
-                        System.out.println(userBadges);
-                        System.out.println(oldbadgeDetails);
+                        ArrayList<String> userBadges = server.getUserBadges(event.getMember().getId());
+                        ArrayList<String> userInventory = server.getUserInventory(event.getMember().getId());
+
+                        if(!userInventory.contains(args[1]) || !userInventory.contains(args[2])){
+                            event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> Error user made a request for a badge that they do not own in inventory.").queue();
+                            break;
+                        }
 
                         if(!userBadges.contains(buildBadge(oldbadgeDetails, args[1]))) {
                             event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> Error user requested to a replace badge that they don't have displayed.").queue();
@@ -478,26 +506,43 @@ public class Commands extends ListenerAdapter {
                             event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> You already have this badge displayed.").queue();
                             break;
                         }
-                        server.removeBadge(event.getMember().getId(), buildBadge(oldbadgeDetails, args[1]));
-                        server.addBadge(event.getMember().getId(), buildBadge(newbadgeDetails, args[2]));
+
+                        server.unequipBadge(event.getMember().getId(), buildBadge(oldbadgeDetails, args[1]));
+                        server.equipBadge(event.getMember().getId(), buildBadge(newbadgeDetails, args[2]));
 
                         event.getChannel().sendMessage("The Replacement was successful! Your old badge is safely stored in your inventory. <a:pepeDS:1000094640269185086>").queue();
                         break;
 
-                    case "removebadge":
+                    case "equipbadge":
                         if(!badgeList.containsKey(args[1])){
-                            event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> Error user requested to replace a badge that does not exist.").queue();
+                            event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> Error user requested to equip a badge that does not exist.").queue();
                             break;
                         }
-                        server.removeBadge(event.getMember().getId(), buildBadge(badgeList.get(args[1]), args[1]));
-                        event.getChannel().sendMessage("Badge successfully removed from your credit card, and is now returned to your inventory.").queue();
+                        userBadges = server.getUserBadges(event.getMember().getId());
+                        if(userBadges.size() >= 4){ //checking if you have an available badge slot.
+                            event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> You currently have the *maximum* amount of badges that can be equipped at a time.\n" +
+                                    "\t   In order to equip your new badge, please choose a badge that you'd like to replace from your card. Use command: **&replacebadge 'oldbadge' 'newbadge**\n\t  《 " + userBadges.get(0) + " | " + userBadges.get(1) + " | " + userBadges.get(2) + " | "+ userBadges.get(3) + " 》").queue();
+                            break;
+                        }
+                        server.equipBadge(event.getMember().getId(), buildBadge(badgeList.get(args[1]), args[1]));
+                        event.getChannel().sendMessage("Badge successfully added to your credit card.").queue();
                         break;
 
+                    case "unequipbadge":
+                        if(!badgeList.containsKey(args[1])){
+                            event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> Error user requested to unequip a badge that does not exist.").queue();
+                            break;
+                        }
+                        server.unequipBadge(event.getMember().getId(), buildBadge(badgeList.get(args[1]), args[1]));
+                        event.getChannel().sendMessage("Badge successfully removed from your credit card, and is now returned to your inventory.").queue();
+                        break;
+                    //wipes your creditcard (badge slots) but keeps your badges in your inventory
                     case "clearbadges":
                         server.clearBadges(event.getMember().getId());
                         event.getChannel().sendMessage("All badges from your credit card were cleared and are now in your inventory").queue();
                         break;
-                    //adds a badge into the database (warning: VERY BUGGY
+
+                    //adds a badge into the database (warning: VERY BUGGY)
                     case "createbadge":
                         if(!(checkUser(event))){
                             event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> Error 404 User does not exist please register using &signup to Gamba").queue();
@@ -516,7 +561,28 @@ public class Commands extends ListenerAdapter {
                         else{ event.getChannel().sendMessage("Weak pleb no powers for you !holdL :fishpain:").queue(); }
                         break;
 
+                    case "inventory":
+                        userInventory = server.getUserInventory(event.getMember().getId());
+                        //we add the item slots in first so we can have the number of items to display into the embed's title
+                        int slots = 0;
+                        for(int i = 0; i < userInventory.size(); i++){
+                            slots = i+1;
+                            msgEmbed.addField("Slot " + slots, userInventory.get(i), true);
+                        }
 
+                        msgEmbed.setTitle(event.getAuthor().getAsTag() + "\'s Inventory (" + slots + "/32)");
+                        msgEmbed.setColor(new Color(207, 106, 50));
+                        msgEmbed.setDescription("ID:" + event.getAuthor().getId());
+                        msgEmbed.setThumbnail("http://pixelartmaker-data-78746291193.nyc3.digitaloceanspaces.com/image/c35fb242dad0370.png");
+                        event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
+                        msgEmbed.clear();
+                        break;
+                    //deletes all badge items you own. (might expand this to commands in the future idk)
+                    case "wipeinventory":
+                        event.getChannel().sendMessage("Your inventory has been deleted. <:box:1002451287406805032>").queue();
+                        server.discardInventory(event.getMember().getId());
+                        server.clearBadges(event.getMember().getId());
+                        break;
                     default:
                         break;
                 }
