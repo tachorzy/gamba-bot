@@ -110,6 +110,7 @@ public class Commands extends ListenerAdapter {
                         msgEmbed.setThumbnail("https://media1.giphy.com/media/ule4vhcY1xEKQ/200w.gif?cid=82a1493bqzosrhi5mwhizr9jip0a47wuhpc3qvdmh9zps698&rid=200w.gif&ct=g");
                         msgEmbed.setDescription("Use the Prefix: " + PREFIX + " before the command names");
                         msgEmbed.addField("addcommand :heavy_plus_sign:", "PERMISSION: MOD\nadds ur/image/gif requested \nEX: " + PREFIX + "addcommand kermit dance (url here) gif 2000",false);
+                        msgEmbed.addField("resetshop :atm:", "PERMISSION: MOD\nresets and updates shop\nEX: " + PREFIX + "resetshop",false);
                         msgEmbed.addField("ban :no_entry_sign:", "PERMISSION: MOD\nbans url/image/gif etc requested \nEX: " + PREFIX + "ban (url here)",false);
                         msgEmbed.addField("creditcard :credit_card:","displays users balance \nEX: " + PREFIX + "creditcard",false);
                         msgEmbed.addField("help :sos:","displays embed of commands to user \nEX: " + PREFIX + "help",false);
@@ -423,7 +424,6 @@ public class Commands extends ListenerAdapter {
 
                         //checks if user is mod before using command
                         if(server.isUserMod(String.valueOf(event.getMember().getIdLong()))){
-                            System.out.println("true");
                             server.insertBanUrl(args[1]);
                             event.getChannel().sendMessage("Url requested has been banned!" + "<@" + event.getMember().getId() + ">" ).queue();
                         }
@@ -448,7 +448,14 @@ public class Commands extends ListenerAdapter {
                         }
                         else{ event.getChannel().sendMessage("Weak pleb no powers for you !holdL :fishpain:").queue(); }
                         break;
-                    //bug space between code
+                    case "resetshop":
+                        if(server.isUserMod(String.valueOf(event.getMember().getIdLong()))){
+                            commandList = server.obtainCommands();
+                            badgeList = server.obtainBadges();
+                            event.getChannel().sendMessage("Resetted Command shop and Badge shop").queue();
+                        }
+                        else{ event.getChannel().sendMessage("Weak pleb no powers for you !holdL :fishpain:").queue(); }
+                        break;
                     case "sample":
                         if(!(checkUser(event))){
                             event.getChannel().sendMessage("Error 404 User does not exist please register using " +PREFIX + "signup to Gamba").queue();
