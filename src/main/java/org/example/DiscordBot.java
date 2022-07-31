@@ -29,26 +29,26 @@ public  class DiscordBot {
             dataValue = data.substring((data.indexOf(':') + 1));
             Name = data.substring(0,data.indexOf(':'));
             switch(Name){
-                case "testbottoken":
-                    DISCORDTOKEN = dataValue;
-                    break;
-                case "dbtoken":
-                    DBTOKEN = dataValue;
-                    break;
-                case "testcollection":
-                    collectionUser = dataValue;
-                    break;
-                case "testbadge":
+                case "badge":
                     collectionBadges = dataValue;
-                    break;
-                case "testcommand":
-                    collectionCommands = dataValue;
                     break;
                 case "banurllist":
                     collectionBanUrl = dataValue;
                     break;
+                case "bottoken":
+                    DISCORDTOKEN = dataValue;
+                    break;
+                case "collection":
+                    collectionUser = dataValue;
+                    break;
+                case "command":
+                    collectionCommands = dataValue;
+                    break;
                 case "database":
                     databaseName = dataValue;
+                    break;
+                case "dbtoken":
+                    DBTOKEN = dataValue;
                     break;
                 case "prefix":
                     prefixVal = dataValue.charAt(0);
@@ -61,9 +61,8 @@ public  class DiscordBot {
                 .setActivity(Activity.playing("Diceroll #Gamba Addiction"))
                 .build();
         //NOTE: if you want to create a new class for a new feature implementation, create a new object below
-        bot.addEventListener(new Commands(new DataBase(DBTOKEN,databaseName,collectionUser,collectionCommands,collectionBanUrl,collectionBadges),prefixVal,new CoinFlip(),new DiceRoll(),new JackpotWheel(),new Fishing()));
+        bot.addEventListener(new Commands(new DataBase(DBTOKEN,databaseName,collectionUser,collectionCommands,collectionBanUrl,collectionBadges),prefixVal,new Help(prefixVal)));
         System.out.println(bot.getSelfUser().getName() + " is up and running!");
-
     }
 }
 

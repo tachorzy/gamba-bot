@@ -20,7 +20,8 @@ public class JackpotWheel {
 
     public String winGif = "https://cdn.discordapp.com/attachments/954548409396785162/982746778996711424/jackpot.gif";
     public String thumbnailUrl;
-    private int jackpotVal = 50000;
+    private int jackpotVal = 100000;
+    public int requestAmount = 500;
     public int compGuess;
     public int userReq = 0;
     public int userBalance = 0;
@@ -40,7 +41,7 @@ public class JackpotWheel {
 
     //reset the jackpot value if a user won
     public void resetJackpot(){
-        jackpotVal = 50000;
+        jackpotVal = 100000;
     }
 
     //spin the wheel if the guess is 11 the user wins the jackpot if not they lose 400 and add it to the jackpot value
@@ -54,7 +55,7 @@ public class JackpotWheel {
             return true;
         }
         thumbnailUrl = loseGifs.get((new Random().nextInt(loseGifs.size())));
-        jackpotVal += 300;
+        jackpotVal += 1000;
         return false;
     }
 
@@ -62,7 +63,7 @@ public class JackpotWheel {
     public boolean validBalance(DataBase server,MessageReceivedEvent event){
         try{
             //check users requests if its more than needed then do not allow them to gamble else allow
-            int request = 150;
+            int request = 500;
             int balance = Integer.valueOf(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
 
             //check if user has enough funds if not return false

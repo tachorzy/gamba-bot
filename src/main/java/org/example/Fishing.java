@@ -45,7 +45,7 @@ public class Fishing {
 
     //returns a boolean value if user won
     public boolean didUserWin(){
-       return didUserWinMoney;
+        return didUserWinMoney;
     }
 
     //obtain a random critter from fishing
@@ -83,4 +83,5 @@ public class Fishing {
 
         return true;
     }
+
 }

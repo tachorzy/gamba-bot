@@ -17,7 +17,6 @@ public class DataBase {
 
     //constructor
     public DataBase(String TOKEN, String dbName, String colName, String colCom ,String colBanUrl,String colBadge) {
-
         //connect to the database to then obtain certain collections
         client = MongoClients.create(TOKEN);
         db = client.getDatabase(dbName);
@@ -29,20 +28,18 @@ public class DataBase {
 
     //Create a new user and insert into the database
     public void insertUser(String userID){
-        //default document no need to change
         Document document = new Document();
         document.append("discordid", userID);
         document.append("credits", "3380");
-        document.append("badges", new String[] { null, null, null,null,null});
-        document.append("inventory", new String[32]);
+        document.append("badges", new ArrayList<String>(4));
+        document.append("inventory", new ArrayList<String>(32));
         collectionUser.insertOne(document);
     }
 
-    //returns a boolean value if user is in the database else returns false
+    //returns a boolean value if user is in the database else returns false else returns true
     public boolean findUser(String userID){
         Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
-        if(userInfo != null){ return true; }
-        return false;
+        return userInfo != null;
     }
 
     //update a users credit when they win or lose credits
@@ -146,7 +143,7 @@ public class DataBase {
     }
 
     //adds a badge document into the database under the badge collection
-    public void insertNewBadge(String badgeName, String id, String type, String cost, String tag){
+    public void insertNewBadge(String id, String badgeName, String tag, String type, String cost){
         Document documentCom = new Document();
         documentCom.append("id",id);
         documentCom.append("badgeName", badgeName);
@@ -199,7 +196,7 @@ public class DataBase {
                     (String)currentDoc.get("command"),
                     //value
                     Arrays.asList(
-                            (String)currentDoc.get("_id"),
+                            (String)currentDoc.get("id"),
                             (String)currentDoc.get("tag"),
                             (String)currentDoc.get("type"),
                             (String)currentDoc.get("cost")
