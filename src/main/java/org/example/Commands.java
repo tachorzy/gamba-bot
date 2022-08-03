@@ -90,12 +90,12 @@ public class Commands extends ListenerAdapter {
     //concatenates a badge based on the given data
     public String buildBadge(List<String> badgeDetails, String badgeName){
         String badge;
-        if(badgeDetails.get(2).equals("gif"))
-            return badge = "<a:" + badgeName + ":" + badgeDetails.get(0) + "> " + badgeDetails.get(1);
-        else if(badgeDetails.get(2).equals("png"))
-            return badge = "<:" + badgeName  + ":" + badgeDetails.get(0) + "> " + badgeDetails.get(1);
+        if(badgeDetails.get(3).equals("gif"))
+            return badge = "<a:" + badgeName + ":" + badgeDetails.get(1) + "> " + badgeDetails.get(2);
+        else if(badgeDetails.get(4).equals("png"))
+            return badge = "<:" + badgeName  + ":" + badgeDetails.get(1) + "> " + badgeDetails.get(2);
         else
-            return badgeDetails.get(0) + " " + badgeDetails.get(1);
+            return badgeDetails.get(1) + " " + badgeDetails.get(2);
     }
 
     @Override
@@ -358,7 +358,7 @@ public class Commands extends ListenerAdapter {
                         while(badgeIterator.hasNext()){
                             Map.Entry element = (Map.Entry)badgeIterator.next();
                             List<String> elementVal = (List<String>)element.getValue();
-                            msgEmbed.addField((String)element.getKey() + "\n" + buildBadge(elementVal,(String)element.getKey()),"\n<:cash:1000666403675840572> Price: $"+elementVal.get(3),true);
+                            msgEmbed.addField(elementVal.get(2) + "\n" + buildBadge(elementVal,(String)elementVal.get(2)),"\n<:cash:1000666403675840572> Price: $"+elementVal.get(5),true);
                         }
 
                         event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
@@ -398,7 +398,7 @@ public class Commands extends ListenerAdapter {
                                 break;
                             }
 
-                            int request = Integer.valueOf(badgeList.get(args[2]).get(3));
+                            int request = Integer.valueOf(badgeList.get(args[2]).get(4));
                             int balance = Integer.valueOf(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
 
                             if (request > balance) { event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> Error Insufficient Funds").queue(); break; }
@@ -413,7 +413,7 @@ public class Commands extends ListenerAdapter {
                             }
 
                             //transaction is done, and adds badge to user inventory before equipping the badge
-                            updateCredits(event,Integer.valueOf(badgeList.get(args[2]).get(3)),false);
+                            updateCredits(event,Integer.valueOf(badgeList.get(args[2]).get(4)),false);
                             server.addBadge(String.valueOf(event.getMember().getIdLong()),args[2], buildBadge(badgeDetails, args[2]));
                             event.getChannel().sendMessage("Transaction complete... your new badge has been added to your inventory. <:box:1002451287406805032>").queue();
 
@@ -493,7 +493,7 @@ public class Commands extends ListenerAdapter {
                         ArrayList<String> userBadges = server.getUserBadges(event.getMember().getId());
                         ArrayList<String> userInventory = server.getUserInventory(event.getMember().getId());
 
-                        if(!userInventory.contains(args[1]) || !userInventory.contains(args[2])){
+                        if(!userInventory.contains(args[1]+"\n"+buildBadge(oldbadgeDetails, args[1])) || !userInventory.contains(args[2]+"\n"+buildBadge(newbadgeDetails, args[2]))){
                             event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> Error user made a request for a badge that they do not own in inventory.").queue();
                             break;
                         }

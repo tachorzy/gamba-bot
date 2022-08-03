@@ -7,17 +7,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-/*
-    Methods:
-    clearGame -> resets class variables for next calculation or validation
-
-    didUserWin -> returns a boolean value if user won or not type(Boolean)
-
-    validInput -> returns a boolean value to check if the users input is valid type(Boolean)
-
-    Purpose of class:
-    To calculate if user won from coinflip and to validate what side of the coin the chose
-*/
 public class CoinFlip {
     public String coinflipList[] = {"heads","tails"};
     public List<String> coinSideName = new ArrayList<String>(Arrays.asList("head","heads","tail","tails"));
@@ -26,7 +15,7 @@ public class CoinFlip {
     public int userReq = 0;
     public int userBalance = 0;
     public int coinGameMinAmount = 0;
-    public int coinGameMaxAmount = 1000;
+    public int coinGameMaxAmount = 2000;
 
     public void clearGame(){
         thumbnailUrl = "";

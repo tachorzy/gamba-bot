@@ -1,0 +1,14 @@
+Methods:
+clearGame -> resets class variables for next calculation or validation
+
+didUserWin -> returns a boolean value if user won or not type(Boolean)
+
+getJackpotVal -> returns the jackpot value type (int)
+
+resetJackpot -> reset the jackpot value
+
+validBalance -> check if user has enough balance to play the game
+
+Purpose of class:
+To calculate if user won from spinning the wheel
+

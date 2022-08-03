@@ -4,21 +4,6 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.util.*;
 
-/*
-Methods:
-clearGame -> resets class variables for next calculation or validation
-
-getCritter -> retrive the emoji of the critter you captured type (String)
-
-didUserWin -> returns a boolean value if user won money type (Boolean)
-
-goFish -> picks a random critter from list if the key was 0 the user lost 10 credits if not they won the key value amount
-
-validBalance -> checks to see if user has enough money to play the game
-
-Purpose of class:
-To calculate if user won from what emoji they caught
-*/
 public class Fishing {
     HashMap<Integer, List<String>> critterList = new HashMap<Integer,List<String>>();
     ArrayList<Integer> rewardPointsList = new ArrayList<Integer>(Arrays.asList(0,15,20,25,30,40,50,60,85,125,275));

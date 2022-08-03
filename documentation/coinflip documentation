@@ -1,0 +1,9 @@
+Methods:
+clearGame -> resets class variables for next calculation or validation
+
+didUserWin -> returns a boolean value if user won or not type(Boolean)
+
+validInput -> returns a boolean value to check if the users input is valid type(Boolean)
+
+Purpose of class:
+To calculate if user won from coinflip and to validate what side of the coin the chose

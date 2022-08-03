@@ -72,8 +72,8 @@ public class DataBase {
         Document document = new Document();
         document.append("discordid", userID);
         document.append("credits", "3380");
-        document.append("badges", new String[] { null, null, null,null,null});
-        document.append("inventory", new String[32]);
+        document.put("badges", new ArrayList<String>());
+        document.put("inventory", new ArrayList<String>());
         collectionUser.insertOne(document);
     }
 
@@ -266,7 +266,7 @@ public class DataBase {
     }
 
     //adds a badge document into the database under the badge collection
-    public void insertBadge(String badgeName,String id, String type, String cost, String tag){
+    public void insertBadge(String id, String badgeName,String tag, String type, String cost){
         Document documentCom = new Document();
         documentCom.append("id",id);
         documentCom.append("badgeName", badgeName);
@@ -290,7 +290,7 @@ public class DataBase {
                     (String)currentDoc.get("command"),
                     //value
                     Arrays.asList(
-                            (String)currentDoc.get("_id"), //BROKEN NEED TO CHANGE THIS FIELD FROM _ID TO EMOTEID (STRING)
+                            (String)currentDoc.get("id"), //BROKEN NEED TO CHANGE THIS FIELD FROM _ID TO EMOTEID (STRING)
                             (String)currentDoc.get("tag"),
                             (String)currentDoc.get("type"),
                             (String)currentDoc.get("cost")
@@ -298,10 +298,5 @@ public class DataBase {
         }
         return badgeTable;
     }
-
-
-
-
-
 
 }

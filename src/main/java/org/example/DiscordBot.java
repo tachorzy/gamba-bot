@@ -8,13 +8,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 
-/*
-    Purpose of Class:
-    Create Default takes token and creates the bot
-    Event listener listens to user commands
-    Data about the database and the bot is obtained from env.txt file
-    To add your file, create a new object and pass it in the commands object below and modify the constructor
-*/
 public  class DiscordBot {
     public static void main(String[] args) throws LoginException, FileNotFoundException {
 

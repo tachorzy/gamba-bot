@@ -4,20 +4,6 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.util.Random;
 
-/*
-    Methods:
-    clearGame -> resets class variables for next calculation or validation
-
-    calculateMultiplier -> calculates percentage multipler of the dice roll
-
-    didUserWin -> returns a boolean value if user won or not type(Boolean)
-
-    validInput -> returns a boolean value to check if the users input is valid type(Boolean)
-
-    Purpose of class:
-    To calculate if user won from coinflip and to validate what side of the coin the chose
-*/
-
 public class DiceRoll {
     public String thumbnailUrl;
     public String bonusVal;
@@ -25,7 +11,7 @@ public class DiceRoll {
     public int userReq = 0;
     public int userBalance = 0;
     public int diceGameMinAmount = 500;
-    public int diceGameMaxAmount = 7000;
+    public int diceGameMaxAmount = 10000;
 
     public boolean betMultipler = false;
 
