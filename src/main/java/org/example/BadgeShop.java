@@ -38,12 +38,4 @@ public class BadgeShop {
         event.getChannel().sendMessageEmbeds(badgeShopEmbed.build()).queue();
         badgeShopEmbed.clear();
     }
-
 }
-
-
-
-//                case "badgeshop":
-//                    msgEmbed.setColor(Color.MAGENTA);
-
-//
