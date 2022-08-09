@@ -15,6 +15,7 @@ public class JackpotSize {
     public String tradeMark ="© 2022 Sussy Inc. All Rights Reserved.";
     public JackpotWheel jackpotWheelObject = new JackpotWheel();
 
+    //create embed with information provided
     public void createjkpotEmbed(){
         jkpotSizeEmbed.setTitle(moneyCashEmote+"JACKPOT GRAND PRIZE"+moneyCashEmote);
         jkpotSizeEmbed.setDescription(coinBagEmote+"***AMOUNT:***" +coinBagEmote + "\n" +"***" + String.valueOf(jackpotWheelObject.getJackpotVal() + "***"));

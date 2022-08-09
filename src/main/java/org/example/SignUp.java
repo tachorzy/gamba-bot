@@ -8,16 +8,19 @@ public class SignUp {
     public String signupEmote = "<a:GAMBAcoin:1000521727647952896>";
     public String signupImage = "https://c.tenor.com/P6jRgqCgB4EAAAAd/catjam.gif";
 
+
+
     //if user exist add to db if not then notify user to stop spamming
     public void signupUser(MessageReceivedEvent event,boolean userExist,DataBase server){
+        String user =  "<@" + event.getMember().getId() + ">";
         if(!userExist){
             server.insertUser(String.valueOf(event.getMember().getIdLong()));
-            String message = signupEmote+"**WELCOME!** <@" + event.getJDA().getSelfUser().getIdLong() + ">" + " has bestowed you the lifestyle of Gamba Addiction" + signupEmote;
+            String message = signupEmote+"**WELCOME!** <@" + event.getJDA().getSelfUser().getIdLong() + ">" + " has bestowed you the lifestyle of Gamba Addiction" + signupEmote + " " + user;
             event.getChannel().sendMessage(message).queue();
             event.getChannel().sendMessage(signupImage).queue();
         }
 
-        event.getChannel().sendMessage(spamNotificationMessage ).queue();
+        event.getChannel().sendMessage(spamNotificationMessage + " " + user ).queue();
         event.getChannel().sendMessage(spamNotificationImage ).queue();
     }
 }

@@ -29,18 +29,27 @@ public class Commands extends ListenerAdapter {
     public AddCommand addComObject = new AddCommand();
     public ResetShop resetShopObject = new ResetShop();
     public Sample sampleComObject = new Sample();
-    public Help helpObject;
+    public Gift giftObject = new Gift();
     public Inventory inventoryObject = new Inventory();
+    public Help helpObject;
 
     //used to store commands and badges locally
     public HashMap<String, List<String>> commandList;
     public HashMap<String, List<String>> badgeList;
+
     //emotes and messages
     public String errorEmote = "<a:exclamationmark:1000459825722957905>";
     public String invalidPurchaseMessage = "Error user requested purchase does not exist please check your request.";
     public String replaceBadgeMessage = "In order to equip your new badge, please choose a badge that you'd like to replace from your card.\nUse command: **&replacebadge 'oldbadge' 'newbadge**";
     public String boxEmote = "<:box:1002451287406805032>";
     public String pepeDS = "<a:pepeDS:1000094640269185086>";
+
+    //speficic channels
+    public String casinoChannelID = "1001750404146659449";
+    public String loungeChannelID = "1001755724961038396";
+    public String jackpotWheelChannelID = "1004589024998080595";
+    public String fishingChannelID = "1002048071661801563";
+
     //Constructor
     public Commands(DataBase db, Character prefixVal ,Help helpObj){
         server = db;
@@ -97,13 +106,16 @@ public class Commands extends ListenerAdapter {
         String[] args = event.getMessage().getContentRaw().split(" ");
 
         //when the user messages add 5 points to their balance each time
-        if(server.findUser(String.valueOf(event.getMember().getIdLong()))){ updateCredits(event,10,true);}
+        if(server.findUser(String.valueOf(event.getMember().getIdLong()))){ updateCredits(event,15,true);}
 
         //checks if user used a ban url
         if(isMessageUsingBanUrl(event,args)){return;}
 
         //if user posts a url thats not banned do not continue to avoid throwing out error
         if(args[0].contains("https")){ return;}
+
+        //if user posts a picture do not continue to avoid throwing out error
+        if(args[0].isEmpty()){return;}
 
         //parse the command and check if its within our switch statement  note bug if you just send a picture
         if(args[0].charAt(0) == PREFIX){
@@ -224,92 +236,48 @@ public class Commands extends ListenerAdapter {
                 case "wipeinventory":
                     inventoryObject.wipeInventory(event,server,event.getMember().getId());
                     break;
+                case "beg":
+                    if(!checkUserRequestValid(event,args.length,2)){break;}
+                    event.getChannel().deleteMessageById(event.getChannel().getLatestMessageIdLong()).queue();
+                    event.getChannel().sendMessage(args[1] + " Please spare some <a:SussyCoin:1004568859648466974> UwU \n-" + event.getMember().getNickname()).queue();
+                    event.getChannel().sendMessage("https://tenor.com/view/cute-kitten-begging-attention-cat-gif-8380127").queue();
+                    break;
+                case "gift":
+                    String user =  "<@" + event.getMember().getId() + ">";
+                    if(giftObject.giftCredits(server,event,args[2],args[1])){ event.getChannel().sendMessage("gifted " + user).queue(); }
+                    break;
                 case "fish":
                     if(!checkUserRequestValid(event,args.length,1)){break;}
-                    //check if user has enough balance
-                    if(fishingObject.validBalance(server,event)){
-                        fishingObject.goFish();
-                        if(fishingObject.didUserWin()){
-                            event.getChannel().sendMessage("Congratulations you caught a: " + fishingObject.getCritter() +
-                                    " you earned " + fishingObject.userReq + " after Sussy Tax").queue();
-                            updateCredits(event, fishingObject.userReq, true);
-                        }
-                        else{
-                            event.getChannel().sendMessage("You caught a: " + fishingObject.getCritter() + " which is illegal under Sussy conservation laws, you have been fined 125 credits !holdL <a:policeBear:1002340283364671621>").queue();
-                            updateCredits(event, 125, false);
-                        }
+                    if(!event.getChannel().getId().equals(fishingChannelID)) {
+                        event.getChannel().deleteMessageById(event.getChannel().getLatestMessageIdLong()).queue();
+                        break;
                     }
-                    //reset object
-                    fishingObject.clearGame();
+                    fishingObject.beginFishing(server,event);
                     break;
-
                 //Coinflip game  example of how the general structure can be more details of code in CoinFlip.java
                 case "coinflip":
                     if(!checkUserRequestValid(event,args.length,3)){break;}
-                    //check if user has valid inputs before calculating game result
-                    if(coinFlipObject.validInput(args[1], args[2],server,event)){
-                        //calculate game result and update value
-                        if(coinFlipObject.didUserWin(args[1])) {
-                            event.getChannel().sendMessage(coinFlipObject.thumbnailUrl).queue();
-                            event.getChannel().sendMessage("Congrats your guess is right!").queueAfter(2, TimeUnit.SECONDS);
-                            updateCredits(event, coinFlipObject.userReq, true);
-                        }
-                        else{
-                            event.getChannel().sendMessage(coinFlipObject.thumbnailUrl).queue();
-                            event.getChannel().sendMessage("Your guess is wrong !holdL.").queueAfter(2, TimeUnit.SECONDS);
-                            updateCredits(event,coinFlipObject.userReq,false);
-                        }
+                    if(!event.getChannel().getId().equals(casinoChannelID)) {
+                        event.getChannel().deleteMessageById(event.getChannel().getLatestMessageIdLong()).queue();
+                        break;
                     }
-                    //reset object
-                    coinFlipObject.clearGame();
+                    coinFlipObject.flipCoin(server,event,args[1],args[2]);
                     break;
-
                 case "diceroll":
                     if(!checkUserRequestValid(event,args.length,2)){break;}
-                    //check valid input
-                    if(diceRollObject.validInput(args[1],server,event)){
-                        //check if user won
-                        if(diceRollObject.didUserWin()){
-                            event.getChannel().sendMessage(diceRollObject.thumbnailUrl).queue();
-                            event.getChannel().sendMessage("Congrats you won!").queueAfter(4, TimeUnit.SECONDS);
-                            //if the dice was a six roll for a multipler
-                            if(diceRollObject.betMultipler){
-                                diceRollObject.calculateMultiplier();
-                                event.getChannel().sendMessage(diceRollObject.thumbnailUrl).queue();
-                                event.getChannel().sendMessage("Bonus: " + diceRollObject.bonusVal + "\nTotal: " + diceRollObject.userReq).queueAfter(4, TimeUnit.SECONDS);
-                            }
-                            updateCredits(event, diceRollObject.userReq, true);
-                        }
-                        else{
-                            event.getChannel().sendMessage(diceRollObject.thumbnailUrl).queue();
-                            event.getChannel().sendMessage("You Lost !holdL.").queueAfter(4, TimeUnit.SECONDS);
-                            updateCredits(event,diceRollObject.userReq,false);
-                        }
+                    if(!event.getChannel().getId().equals(casinoChannelID)) {
+                        event.getChannel().deleteMessageById(event.getChannel().getLatestMessageIdLong()).queue();
+                        break;
                     }
-                    //reset object
-                    diceRollObject.clearGame();
+                    diceRollObject.rollDice(server,event,args[1]);
                     break;
                 case "spinwheel":
                     if(!checkUserRequestValid(event,args.length,1)){break;}
-                    //check if user has enough balance
-                    if(jackpotWheelObject.validBalance(server,event)){
-                        //check if user won
-                        if(jackpotWheelObject.didUserWin()){
-                            event.getChannel().sendMessage(jackpotWheelObject.thumbnailUrl).queue();
-                            event.getChannel().sendMessage(":tada: :tada: :tada: :tada: :partying_face: JACKPOT!!! AMOUNT: " + jackpotWheelObject.getJackpotVal() + ":partying_face: :tada: :tada: :tada: :tada:\nhttps://c.tenor.com/nBX1KXnHfqQAAAAC/fishpog.gif").queueAfter(5, TimeUnit.SECONDS);
-                            updateCredits(event, jackpotWheelObject.getJackpotVal(), true);
-
-                            //reset jackpot value
-                            jackpotWheelObject.resetJackpot();
-                        }
-                        else{
-                            event.getChannel().sendMessage(jackpotWheelObject.thumbnailUrl).queue();
-                            event.getChannel().sendMessage("You Lost !holdL.").queueAfter(5, TimeUnit.SECONDS);
-                            updateCredits(event,jackpotWheelObject.userReq,false);
-                        }
+                    if(!event.getChannel().getId().equals(casinoChannelID)) {
+                        event.getChannel().deleteMessageById(event.getChannel().getLatestMessageIdLong()).queue();
+                        break;
                     }
-                    //reset object
-                    jackpotWheelObject.clearGame();
+                    jackpotWheelObject.startSpinWheel(server,event);
                     break;
                 default:
                     break;

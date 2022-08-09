@@ -39,10 +39,10 @@ public class Help {
         PrefixReminderMessage = "Use the Prefix: " + PREFIX + " before the command names";
         badgeDescriptionMessage =
                 "With credits users can buy rewards from the shop such as credit card **badges** and media **commands**. " +
-                "In the **badgeshop**, you can find badges that " +
-                "you can buy and equip to your **credit card**. " +
-                "Your credit card has **4 badge slots** but comes with an **inventory** of 32 slots. " +
-                "You can access your inventory with the command: " + PREFIX + "inventory";
+                        "In the **badgeshop**, you can find badges that " +
+                        "you can buy and equip to your **credit card**. " +
+                        "Your credit card has **4 badge slots** but comes with an **inventory** of 32 slots. " +
+                        "You can access your inventory with the command: " + PREFIX + "inventory";
 
         regularCommandTable.put("addcommand",new ArrayList<String>(Arrays.asList(":new:","PERMISSION: MOD\nadds ur/image/gif requested \nEX: " + PREFIX + "addcommand kermit dance (url here) gif 2000")));
         regularCommandTable.put("resetshop",new ArrayList<String>(Arrays.asList(":atm:","PERMISSION: MOD\nresets and updates shop\nEX: " + PREFIX + "resetshop")));
@@ -56,8 +56,8 @@ public class Help {
         regularCommandTable.put("sample",new ArrayList<String>(Arrays.asList(":inbox_tray:","Samples a specific command and dms to user how it would look when user uses specific command \nEX: " + PREFIX + "sample kermitdance")));
 
         gameCommandTable.put("coinflip",new ArrayList<String>(Arrays.asList(":coin:","Flips a two sided coin (heads/tails) \nEX: " + PREFIX + "coinflip heads 100  BET RANGE: (1-"+coinFlipObject.coinGameMaxAmount+")")));
-        gameCommandTable.put("diceroll",new ArrayList<String>(Arrays.asList(":game_die:","Win by rolling a 3 or a 6, if you roll a 6 you get a bonus bet multiplier\nMultiplier: \n50%\n100%\n150%\n225%\n300%\n400%" + "\n EX: " +PREFIX + "diceroll 500  BET RANGE: (" + diceRollObject.diceGameMinAmount + "-" + diceRollObject.diceGameMaxAmount + ")")));
-        gameCommandTable.put("fish",new ArrayList<String>(Arrays.asList(":fishing_pole_and_fish:","reward values: \n15\n20\n25\n30\n40\n50\n60\n85\n125\n275\nCost per line due to Sussy Tax: 20 \nEX: " + PREFIX + "fish")));
+        gameCommandTable.put("diceroll",new ArrayList<String>(Arrays.asList(":game_die:","Win by rolling a 3 or a 6, if you roll a 6 you get a bonus bet multiplier\nMultiplier: \n100%\n200%\n300%\n400%\n500%\n600%" + "\n EX: " +PREFIX + "diceroll 500  BET RANGE: (" + diceRollObject.diceGameMinAmount + "-" + diceRollObject.diceGameMaxAmount + ")")));
+        gameCommandTable.put("fish",new ArrayList<String>(Arrays.asList(":fishing_pole_and_fish:","reward values: \n100\n200\n300\n350\n400\n450\n500\n550\n600\n2000 \nCost per line due to Sussy Tax: 20 \nEX: " + PREFIX + "fish")));
         gameCommandTable.put("jackpotsize",new ArrayList<String>(Arrays.asList(":ballot_box:","returns jackpot size for spinwheel \nEX: " + PREFIX + "jackspotsize")));
         gameCommandTable.put("spinwheel",new ArrayList<String>(Arrays.asList(":ferris_wheel:","Initial Jackpot Value: " +jackpotWheelObject.getJackpotVal() + "\nCost per spin: " + jackpotWheelObject.requestAmount + " \n EX: " + PREFIX + "spinwheel")));
 

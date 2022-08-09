@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 public class CoinFlip {
     public String coinflipList[] = {"heads","tails"};
@@ -15,7 +16,7 @@ public class CoinFlip {
     public int userReq = 0;
     public int userBalance = 0;
     public int coinGameMinAmount = 0;
-    public int coinGameMaxAmount = 3000;
+    public int coinGameMaxAmount = 4000;
 
     public void clearGame(){
         thumbnailUrl = "";
@@ -51,8 +52,8 @@ public class CoinFlip {
 
         try{
             //check users requests if its more than needed then do not allow them to gamble else allow
-                int request =Integer.valueOf(userBetReq);
-                int balance = Integer.valueOf(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
+            int request =Integer.valueOf(userBetReq);
+            int balance = Integer.valueOf(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
 
             //handle if user requests less than 0 throw error
             if (request <= coinGameMinAmount  ||  request > coinGameMaxAmount){
@@ -75,5 +76,36 @@ public class CoinFlip {
         }
 
         return true;
+    }
+
+    //updates users credits
+    public void updateCredits(DataBase server ,MessageReceivedEvent event, int userReq, boolean addCredit){
+        int creditVal = Integer.parseInt(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
+
+        //if addCredit is true add to credits else subtract
+        if(addCredit){ creditVal += userReq; }
+        else{ creditVal -= userReq; }
+
+        server.updateUserCredits(String.valueOf(event.getMember().getIdLong()),String.valueOf(creditVal));
+    }
+
+
+    public void flipCoin(DataBase server, MessageReceivedEvent event,String coinSide, String betAmount){
+        //check if user has valid inputs before calculating game result
+        if(validInput(coinSide, betAmount,server,event)){
+            //calculate game result and update value
+            if(didUserWin(coinSide)) {
+                event.getChannel().sendMessage(thumbnailUrl).queue();
+                event.getChannel().sendMessage("Congrats your guess is right!").queueAfter(2, TimeUnit.SECONDS);
+                updateCredits(server,event, userReq, true);
+            }
+            else{
+                event.getChannel().sendMessage(thumbnailUrl).queue();
+                event.getChannel().sendMessage("Your guess is wrong !holdL.").queueAfter(2, TimeUnit.SECONDS);
+                updateCredits(server,event,userReq,false);
+            }
+        }
+        //reset object
+        clearGame();
     }
 }
