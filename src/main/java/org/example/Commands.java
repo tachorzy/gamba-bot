@@ -220,6 +220,7 @@ public class Commands extends ListenerAdapter {
                     break;
                 case "inventory":
                     inventoryObject.printInventoryEmbed(event,server,event.getMember().getId());
+                    break;
                 case "wipeinventory":
                     inventoryObject.wipeInventory(event,server,event.getMember().getId());
                     break;
