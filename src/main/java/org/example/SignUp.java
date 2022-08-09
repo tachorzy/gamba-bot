@@ -18,6 +18,7 @@ public class SignUp {
             String message = signupEmote+"**WELCOME!** <@" + event.getJDA().getSelfUser().getIdLong() + ">" + " has bestowed you the lifestyle of Gamba Addiction" + signupEmote + " " + user;
             event.getChannel().sendMessage(message).queue();
             event.getChannel().sendMessage(signupImage).queue();
+            return;
         }
 
         event.getChannel().sendMessage(spamNotificationMessage + " " + user ).queue();

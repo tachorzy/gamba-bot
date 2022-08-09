@@ -31,15 +31,14 @@ public class CreditCard {
         creditCardEmbed.setThumbnail(userPicture);
         creditCardEmbed.setTimestamp(Instant.now());
         creditCardEmbed.setFooter("City: Waka Waka eh eh"); //change later to where user can change city name.
-        String description = "ID:" + userID + "\n" + sussyCoinEmote + " SussyCoin: " + userCredits + "\n**Badges:**\n";
+        StringBuilder description = new StringBuilder("ID:" + userID + "\n" + sussyCoinEmote + " SussyCoins: " + userCredits + "\n**Badges:**\n");
 
         //if users has badge then add to description string
-        if (userBadges.isEmpty() == false){
-            for (int i = 0; i < userBadges.size(); i++)
-                description += userBadges.get(i) + "\n";
+        if (!userBadges.isEmpty()){
+            for (String userBadge : userBadges) description.append(userBadge).append("\n");
         }
 
-        creditCardEmbed.setDescription(description);
+        creditCardEmbed.setDescription(description.toString());
     }
 
     //obtain user info and call build embed after that print to discord and clear the embed
@@ -58,12 +57,14 @@ public class CreditCard {
 
     //replace old badge with new badge by user's request
     public void replaceBadge(MessageReceivedEvent event, HashMap<String, List<String>> badgeList, String oldBadgeName, String newBadgeName, DataBase server) {
+        String user =  "<@" +event.getMember().getId() + ">";
+
         if (!badgeList.containsKey(oldBadgeName) || !badgeList.containsKey(newBadgeName)) {
-            event.getChannel().sendMessage(errorEmote + "Error user requested badge does not exist please check your request.").queue();
+            event.getChannel().sendMessage(errorEmote +
+                    "Error user requested badge does not exist please check your request. use &help for more info " + user).queue();
             return;
         }
 
-        String user =  "<@" +event.getMember().getId() + ">";
 
         //obtain list of old badge and new badge
         List<String> oldBadgeDetails = badgeList.get(oldBadgeName);
@@ -79,12 +80,14 @@ public class CreditCard {
 
         //items in the inventory are stored as name\nbadge so that is why we search the user inventory for this format.
         if (!userInventory.contains(newBadgeName + "\n" + newBadge) || !userInventory.contains(oldBadgeName + "\n" + oldBadge)){
-            event.getChannel().sendMessage(errorEmote + "Error user made a request for a badge that they do not own in inventory. " + user).queue();
+            event.getChannel().sendMessage(errorEmote
+                    + "Error user made a request for a badge that they do not own in inventory. use &help for more info " + user).queue();
             return;
         }
         //if old badge does not exist notify user
         else if (!userBadges.contains(oldBadge)){
-            event.getChannel().sendMessage(errorEmote + "Error user requested to a replace badge that they don't have displayed. " + user).queue();
+            event.getChannel().sendMessage(errorEmote
+                    + "Error user requested to a replace badge that they don't have displayed. use &help for more info " + user).queue();
             return;
         }
         else if (userBadges.contains(newBadge)) {
@@ -94,24 +97,25 @@ public class CreditCard {
         else {
             server.unequipBadge(event.getMember().getId(), oldBadge);
             server.equipBadge(event.getMember().getId(), newBadge);
-            event.getChannel().sendMessage("The Replacement was successful! Your old badge is safely stored in your inventory. " + user + " " + boxEmote).queue();
+            event.getChannel().sendMessage("The Replacement was successful! Your old badge is safely stored in your inventory. "
+                    + user + " " + boxEmote).queue();
         }
     }
 
     //equip badge if theres slot available notify user if full
     public void equipBadge(MessageReceivedEvent event, HashMap<String, List<String>> badgeList, String badgeName, DataBase server) {
+        String user =  "<@" +event.getMember().getId() + ">";
+
         if (!badgeList.containsKey(badgeName)){
-            event.getChannel().sendMessage(errorEmote + "Error user requested to equip a badge that does not exist.").queue();
+            event.getChannel().sendMessage(errorEmote + "Error user requested to equip a badge that does not exist. " + user).queue();
             return;
         }
-
-        String user =  "<@" +event.getMember().getId() + ">";
 
         ArrayList<String> userBadges = server.getUserSlotBadges(event.getMember().getId());
         if (userBadges.size() >= 4) { //checking if you have an available badge slot.
             String userBadgeSlots = "《 " + userBadges.get(0) + " | " + userBadges.get(1) + " | " + userBadges.get(2) + " | " + userBadges.get(3) + " 》";
             msgEmbed.setColor(Color.WHITE);
-            msgEmbed.setTitle(errorEmote + "You currently have the maximum amount of badges that can be equipped at a time.");
+            msgEmbed.setTitle(errorEmote + "You currently have the maximum amount of badges that can be equipped at a time. " + user);
             msgEmbed.setDescription(replaceBadgeMessage);
             msgEmbed.addField("Your Current Badge Slots:", userBadgeSlots, false);
             event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
@@ -124,11 +128,12 @@ public class CreditCard {
 
     //unequip specific badge user request
     public void unequipBadge(MessageReceivedEvent event, HashMap<String, List<String>> badgeList, String badgeName, DataBase server) {
+        String user =  "<@" +event.getMember().getId() + ">";
+
         if (!badgeList.containsKey(badgeName)){
-            event.getChannel().sendMessage(errorEmote + "Error user requested to unequip a badge that does not exist.").queue();
+            event.getChannel().sendMessage(errorEmote + "Error user requested to unequip a badge that does not exist. use &help for more info" + user).queue();
             return;
         }
-        String user =  "<@" +event.getMember().getId() + ">";
 
         server.unequipBadge(event.getMember().getId(), badgeBuilderObject.buildBadge(badgeList.get(badgeName), badgeName));
         event.getChannel().sendMessage("Badge successfully removed from your credit card, and is now returned to your inventory. :credit_card: " + user).queue();

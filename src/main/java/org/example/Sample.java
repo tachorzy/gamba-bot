@@ -11,6 +11,6 @@ public class Sample {
             event.getMember().getUser().openPrivateChannel().flatMap(
                     channel -> channel.sendMessage(commandList.get(commandName).get(0))).queue();
         }
-        else{ event.getChannel().sendMessage("Command does not exist " + "<@" + event.getMember().getId() + ">").queue(); }
+        else{ event.getChannel().sendMessage("Command does not exist use &help for more info " + "<@" + event.getMember().getId() + ">").queue(); }
     }
 }

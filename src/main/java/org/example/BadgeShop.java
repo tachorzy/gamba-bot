@@ -6,7 +6,6 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import java.awt.*;
 import java.time.Instant;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -25,16 +24,14 @@ public class BadgeShop {
         badgeShopEmbed.setTitle(sussyCoin + "SUSSY'S SOUVENIR SHOP™" + sussyCoin);
         badgeShopEmbed.setThumbnail(thumbnailUrl);
         badgeShopEmbed.setColor(badgeShopEmbedColor);
-        Iterator badgeIterator = badgeList.entrySet().iterator();
-        while(badgeIterator.hasNext()){
-            Map.Entry element = (Map.Entry)badgeIterator.next();
-            List<String> elementVal = (List<String>)element.getValue();
-            String elementKey = elementVal.get(1);
-            String elementPrice = elementVal.get(4);
-            badgeShopEmbed.addField((String) elementKey + "\n" + badge.buildBadge(elementVal,elementKey), stackCashEmote + "Price: $"+ elementPrice,true);
-        }
         badgeShopEmbed.setTimestamp(Instant.now());
         badgeShopEmbed.setFooter(tradeMark);
+        for (Map.Entry<String, List<String>> stringListEntry : badgeList.entrySet()) {
+            List<String> elementVal = (List<String>) ((Map.Entry) stringListEntry).getValue();
+            String elementKey = elementVal.get(1);
+            String elementPrice = elementVal.get(4);
+            badgeShopEmbed.addField(elementKey + "\n" + badge.buildBadge(elementVal, elementKey), stackCashEmote + "Price: $" + elementPrice, true);
+        }
     }
 
     //prints embed and clears embed to be reused later

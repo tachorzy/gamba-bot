@@ -35,7 +35,7 @@ public class DiceRoll {
         switch (compGuess){
             case 1:
                 thumbnailUrl = "https://cdn.discordapp.com/attachments/954548409396785162/982550126092513300/diceroll1.gif";
-                userReq += userReq * 1;
+                userReq += userReq;
                 bonusVal = "100%";
                 break;
             case 2:
@@ -103,27 +103,27 @@ public class DiceRoll {
             betMultipler = true;
             return true;
         }
-        else if (compGuess == 3){
-            return true;
-        }
-        return false;
+        else return compGuess == 3;
     }
 
     //validate user input before calculating the winner
     public boolean validInput(String userBetReq, DataBase server, MessageReceivedEvent event){
+        String user =  "<@" +event.getMember().getId() + ">";
+
         try{
             //check users requests if its more than needed then do not allow them to gamble else allow
-            int request = Integer.valueOf(userBetReq);
-            int balance = Integer.valueOf(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
+            int request = Integer.parseInt(userBetReq);
+            int balance = Integer.parseInt(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
 
             //handle if user requests less than 0 throw error
             if (request < diceGameMinAmount  ||  request > diceGameMaxAmount){
-                event.getChannel().sendMessage("Error: please specify a valid amount you would like to bet range " + diceGameMinAmount + "-" + diceGameMaxAmount ).queue();
+                event.getChannel().sendMessage("Error: please specify a valid amount you would like to bet range "
+                        + diceGameMinAmount + "-" + diceGameMaxAmount + " use &help for more info " + user).queue();
                 return false;
             }
             //check if user has enough funds
             else if(request > balance){
-                event.getChannel().sendMessage("Error Insufficient Funds").queue();
+                event.getChannel().sendMessage("Error Insufficient Funds. " + user).queue();
                 return false;
             }
 
@@ -132,7 +132,8 @@ public class DiceRoll {
             userBalance = balance;
 
         }catch(NumberFormatException e){
-            event.getChannel().sendMessage("Error: please specify a valid amount you would like to bet range 500-2000").queue();
+            event.getChannel().sendMessage("Error: please specify a valid amount you would like to bet range "
+                    + diceGameMinAmount + "-" + diceGameMaxAmount + " use &help for more info " + user).queue();
             return false;
         }
 
@@ -151,12 +152,14 @@ public class DiceRoll {
     }
 
     public void rollDice(DataBase server,MessageReceivedEvent event,String betAmount){
+        String user =  "<@" +event.getMember().getId() + ">";
+
         //check valid input
         if(validInput(betAmount,server,event)){
             //check if user won
             if(didUserWin()){
                 event.getChannel().sendMessage(thumbnailUrl).queue();
-                event.getChannel().sendMessage("Congrats you won!").queueAfter(4, TimeUnit.SECONDS);
+                event.getChannel().sendMessage("Congrats you won! " + user).queueAfter(4, TimeUnit.SECONDS);
                 //if the dice was a six roll for a multipler
                 if(betMultipler){
                     calculateMultiplier();
@@ -167,7 +170,7 @@ public class DiceRoll {
             }
             else{
                 event.getChannel().sendMessage(thumbnailUrl).queue();
-                event.getChannel().sendMessage("You Lost !holdL.").queueAfter(4, TimeUnit.SECONDS);
+                event.getChannel().sendMessage("You Lost !holdL. " + user).queueAfter(4, TimeUnit.SECONDS);
                 updateCredits(server,event,userReq,false);
             }
         }

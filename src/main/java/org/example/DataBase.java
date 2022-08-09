@@ -100,19 +100,17 @@ public class DataBase {
     public HashMap<String,List<String>> obtainCommands(){
         HashMap<String, List<String>> commandTable = new HashMap<>();
         FindIterable<Document> iterDoc = collectionCommands.find();
-        Iterator iteratorCursor = iterDoc.iterator();
 
         //iterate using the cursor and store into hashmap
-        while (iteratorCursor.hasNext()) {
-            Document currentDoc = (Document)iteratorCursor.next();
+        for (Document currentDoc : iterDoc) {
             commandTable.put(
                     //key
-                    (String)currentDoc.get("command"),
+                    (String) currentDoc.get("command"),
                     //value
                     Arrays.asList(
-                            (String)currentDoc.get("url"),
-                            (String)currentDoc.get("cost"),
-                            (String)currentDoc.get("type")
+                            (String) currentDoc.get("url"),
+                            (String) currentDoc.get("cost"),
+                            (String) currentDoc.get("type")
                     ));
         }
         return commandTable;
@@ -131,8 +129,7 @@ public class DataBase {
         if(url.contains("https:")){ finalUrl = url.substring(url.indexOf("http")); }
         else{ finalUrl = url; }
         long documentCheck =  collectionBanUrl.countDocuments(new Document("url",finalUrl));
-        if(documentCheck != 0){ return true; }
-        return false;
+        return documentCheck != 0;
     }
 
     //return true if user is mod
@@ -163,18 +160,6 @@ public class DataBase {
         }
     }
 
-    //adds a badge into a user's inventory by granting them the permissions to use it
-    public void addBadgePermission(String userID, String badge){
-        Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
-
-        //if the document/user is found apply update the document and send it to MongoDB
-        if(userInfo != null){
-            Bson updatedValue = new Document(badge,true);
-            Bson updatedOperation = new Document("$set", updatedValue);       //set allows the document to be updated
-            collectionUser.updateOne(userInfo,updatedOperation);
-        }
-    }
-
     //returns the user's badge slots
     public ArrayList<String> getUserSlotBadges(String userID){
         Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
@@ -186,34 +171,22 @@ public class DataBase {
     public HashMap<String,List<String>> obtainBadges(){
         HashMap<String, List<String>> badgeTable = new HashMap<>();
         FindIterable<Document> iterDoc = collectionBadges.find();
-        Iterator iteratorCursor = iterDoc.iterator();
 
         //iterate using the cursor and store into hashmap
-        while (iteratorCursor.hasNext()) {
-            Document currentDoc = (Document)iteratorCursor.next();
+        for (Document currentDoc : iterDoc) {
             badgeTable.put(
                     //key
-                    (String)currentDoc.get("badgeName"),
+                    (String) currentDoc.get("badgeName"),
                     //value
                     Arrays.asList(
-                            (String)currentDoc.get("id"),
-                            (String)currentDoc.get("badgeName"),
-                            (String)currentDoc.get("tag"),
-                            (String)currentDoc.get("type"),
-                            (String)currentDoc.get("cost")
+                            (String) currentDoc.get("id"),
+                            (String) currentDoc.get("badgeName"),
+                            (String) currentDoc.get("tag"),
+                            (String) currentDoc.get("type"),
+                            (String) currentDoc.get("cost")
                     ));
         }
         return badgeTable;
-    }
-
-    //removes a badge from users inventory
-    public void removeBadge(String userID, String badge, String badgeID) {
-        Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
-        if(userInfo != null) {
-            Bson updatedValue = new Document("inventory", badge + "\n" + badgeID);
-            Bson updatedOperation = new Document("$pull", updatedValue);
-            collectionUser.updateOne(userInfo, updatedOperation);
-        }
     }
 
     //clears a user's badge slots from the database
@@ -221,7 +194,7 @@ public class DataBase {
         Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
         if(userInfo == null) { return; }
         if(isUserMod(userID)){
-            List<String> badgeList = new ArrayList<String>(5);
+            List<String> badgeList = new ArrayList<>(5);
             Bson updatedValue = new Document("badges", badgeList);             // set empty array as the empty badge slots in database
             Bson updatedOperation = new Document("$set", updatedValue);       //set allows the document to be updated
             collectionUser.updateOne(userInfo,updatedOperation);
@@ -233,7 +206,7 @@ public class DataBase {
         Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
         if(userInfo == null) { return; }
         if(isUserMod(userID)){
-            List<String> inventoryList = new ArrayList<String>(0);
+            List<String> inventoryList = new ArrayList<>(0);
             Bson updatedValue = new Document("inventory", inventoryList);     //empties out how inventory by setting a empty array
             Bson updatedOperation = new Document("$set", updatedValue);       //set allows the document to be updated
             collectionUser.updateOne(userInfo,updatedOperation);

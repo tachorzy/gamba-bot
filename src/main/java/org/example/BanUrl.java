@@ -11,6 +11,10 @@ public class BanUrl {
 
         //checks if user is mod before using command
         if(server.isUserMod(String.valueOf(event.getMember().getIdLong()))){
+            if(!urlRequested.contains("http")){
+                event.getChannel().sendMessage("Url requested is invalid please check again. Use &help for more details " + user ).queue();
+                return;
+            }
             server.insertBanUrl(urlRequested);
             event.getChannel().sendMessage("Url requested has been banned!" + user ).queue();
         }

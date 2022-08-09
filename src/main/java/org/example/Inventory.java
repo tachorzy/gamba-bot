@@ -45,7 +45,8 @@ public class Inventory {
 
     //permantely get rid of users inventory
     public void wipeInventory(MessageReceivedEvent event, DataBase server, String userID){
-        event.getChannel().sendMessage("Your inventory has been deleted. " + boxEmote).queue();
+        String user =  "<@" +event.getMember().getId() + ">";
+        event.getChannel().sendMessage("Your inventory has been deleted. " + user + " "+ boxEmote).queue();
         server.discardInventory(userID);
         server.clearBadges(userID);
     }

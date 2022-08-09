@@ -2,7 +2,6 @@ package org.example;
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
-import javax.xml.crypto.Data;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -10,9 +9,9 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 public class JackpotWheel {
-    public List<String> loseGifs = new ArrayList<String>(
+    public List<String> loseGifs = new ArrayList<>(
             Arrays.asList("https://cdn.discordapp.com/attachments/954548409396785162/982746601921577000/lose1.gif"
-                    ,"https://cdn.discordapp.com/attachments/954548409396785162/982746696138236035/lose2.gif",
+                    , "https://cdn.discordapp.com/attachments/954548409396785162/982746696138236035/lose2.gif",
                     "https://cdn.discordapp.com/attachments/954548409396785162/982746720880443462/lose3.gif",
                     "https://cdn.discordapp.com/attachments/954548409396785162/982746751956025454/lose4.gif",
                     "https://cdn.discordapp.com/attachments/954548409396785162/982746762521481287/lose5.gif",
@@ -67,7 +66,7 @@ public class JackpotWheel {
         try{
             //check users requests if its more than needed then do not allow them to gamble else allow
             int request = 1000;
-            int balance = Integer.valueOf(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
+            int balance = Integer.parseInt(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
 
             //check if user has enough funds if not return false
             if (request > balance) {

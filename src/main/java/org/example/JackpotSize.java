@@ -18,7 +18,7 @@ public class JackpotSize {
     //create embed with information provided
     public void createjkpotEmbed(){
         jkpotSizeEmbed.setTitle(moneyCashEmote+"JACKPOT GRAND PRIZE"+moneyCashEmote);
-        jkpotSizeEmbed.setDescription(coinBagEmote+"***AMOUNT:***" +coinBagEmote + "\n" +"***" + String.valueOf(jackpotWheelObject.getJackpotVal() + "***"));
+        jkpotSizeEmbed.setDescription(coinBagEmote + "***AMOUNT:***" + coinBagEmote + "\n" + "***" + jackpotWheelObject.getJackpotVal() + "***");
         jkpotSizeEmbed.setThumbnail(jkpotSizeThumbnail);
         jkpotSizeEmbed.setTimestamp(Instant.now());
         jkpotSizeEmbed.setFooter(tradeMark);
