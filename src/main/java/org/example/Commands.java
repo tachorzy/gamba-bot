@@ -313,7 +313,6 @@ public class Commands extends ListenerAdapter {
                     break;
                 default:
                     break;
-
             }
         }
     }
