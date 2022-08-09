@@ -15,7 +15,7 @@ public class CoinFlip {
     public int userReq = 0;
     public int userBalance = 0;
     public int coinGameMinAmount = 0;
-    public int coinGameMaxAmount = 2000;
+    public int coinGameMaxAmount = 3000;
 
     public void clearGame(){
         thumbnailUrl = "";
@@ -56,7 +56,7 @@ public class CoinFlip {
 
             //handle if user requests less than 0 throw error
             if (request <= coinGameMinAmount  ||  request > coinGameMaxAmount){
-                event.getChannel().sendMessage("Error: please specify a valid amount you would like to bet range 1-250").queue();
+                event.getChannel().sendMessage("Error: please specify a valid amount you would like to bet range " + coinGameMinAmount + "-" + coinGameMaxAmount).queue();
                 return false;
             }
             //check if user has enough funds
