@@ -22,16 +22,16 @@ public class Shop {
 
 
     //create shop embed and return it
-    public void createShopEmbed(HashMap<String, List<String>> commandList){
-        shopEmbed.setTitle(moneyCashEmote+"SUSSY'S MEGACENTER™"+moneyCashEmote);
+    public void createShopEmbed(HashMap<String, List<String>> commandList) {
+        shopEmbed.setTitle(moneyCashEmote + "SUSSY'S MEGACENTER™" + moneyCashEmote);
         shopEmbed.setDescription(shopEmbedDescription);
         shopEmbed.setThumbnail(shopEmbedThumbnail);
         shopEmbed.setImage(shopEmbedImage);
         Iterator comIterator = commandList.entrySet().iterator();
-        while(comIterator.hasNext()) {
+        while (comIterator.hasNext()) {
             Map.Entry element = (Map.Entry) comIterator.next();
             java.util.List<String> elementVal = (List<String>) element.getValue();
-            shopEmbed.addField((String) element.getKey(), stackCashEmote+" Price: $" + elementVal.get(1), true);
+            shopEmbed.addField((String) element.getKey(), stackCashEmote + " Price: $" + elementVal.get(1), true);
         }
         shopEmbed.setTimestamp(Instant.now());
         shopEmbed.setFooter(tradeMark);
@@ -39,7 +39,7 @@ public class Shop {
     }
 
     //display the shop embed to user
-    public void printShopEmbed(MessageReceivedEvent event,HashMap<String, List<String>> commandList){
+    public void printShopEmbed(MessageReceivedEvent event, HashMap<String, List<String>> commandList) {
         createShopEmbed(commandList);
         event.getChannel().sendMessageEmbeds(shopEmbed.build()).queue();
         shopEmbed.clear();

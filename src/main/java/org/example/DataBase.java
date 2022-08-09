@@ -143,7 +143,7 @@ public class DataBase {
     }
 
     //adds a badge document into the database under the badge collection
-    public void insertNewBadge(String id, String badgeName, String tag, String type, String cost){
+    public void insertNewBadge( String badgeName, String id, String type, String cost, String tag){
         Document documentCom = new Document();
         documentCom.append("id",id);
         documentCom.append("badgeName", badgeName);
@@ -193,10 +193,11 @@ public class DataBase {
             Document currentDoc = (Document)iteratorCursor.next();
             badgeTable.put(
                     //key
-                    (String)currentDoc.get("command"),
+                    (String)currentDoc.get("badgeName"),
                     //value
                     Arrays.asList(
                             (String)currentDoc.get("id"),
+                            (String)currentDoc.get("badgeName"),
                             (String)currentDoc.get("tag"),
                             (String)currentDoc.get("type"),
                             (String)currentDoc.get("cost")
