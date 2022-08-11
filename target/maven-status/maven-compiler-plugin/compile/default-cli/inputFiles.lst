@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 C:\Users\Tariq\IdeaProjects\gambabotdev\src\main\java\org\example\SignUp.java
 C:\Users\Tariq\IdeaProjects\gambabotdev\src\main\java\org\example\AddCommand.java
 C:\Users\Tariq\IdeaProjects\gambabotdev\src\main\java\org\example\JackpotSize.java
@@ -20,3 +21,23 @@ C:\Users\Tariq\IdeaProjects\gambabotdev\src\main\java\org\example\Inventory.java
 C:\Users\Tariq\IdeaProjects\gambabotdev\src\main\java\org\example\Sample.java
 C:\Users\Tariq\IdeaProjects\gambabotdev\src\main\java\org\example\Gift.java
 C:\Users\Tariq\IdeaProjects\gambabotdev\src\main\java\org\example\BanUrl.java
+=======
+C:\Users\Tariq\IdeaProjects\gamba\src\main\java\org\example\BadgeBuilder.java
+C:\Users\Tariq\IdeaProjects\gamba\src\main\java\org\example\DiscordBot.java
+C:\Users\Tariq\IdeaProjects\gamba\src\main\java\org\example\DiceRoll.java
+C:\Users\Tariq\IdeaProjects\gamba\src\main\java\org\example\Fishing.java
+C:\Users\Tariq\IdeaProjects\gamba\src\main\java\org\example\SignUp.java
+C:\Users\Tariq\IdeaProjects\gamba\src\main\java\org\example\ResetShop.java
+C:\Users\Tariq\IdeaProjects\gamba\src\main\java\org\example\CoinFlip.java
+C:\Users\Tariq\IdeaProjects\gamba\src\main\java\org\example\DataBase.java
+C:\Users\Tariq\IdeaProjects\gamba\src\main\java\org\example\Sample.java
+C:\Users\Tariq\IdeaProjects\gamba\src\main\java\org\example\Shop.java
+C:\Users\Tariq\IdeaProjects\gamba\src\main\java\org\example\JackpotWheel.java
+C:\Users\Tariq\IdeaProjects\gamba\src\main\java\org\example\BanUrl.java
+C:\Users\Tariq\IdeaProjects\gamba\src\main\java\org\example\BadgeShop.java
+C:\Users\Tariq\IdeaProjects\gamba\src\main\java\org\example\Help.java
+C:\Users\Tariq\IdeaProjects\gamba\src\main\java\org\example\Commands.java
+C:\Users\Tariq\IdeaProjects\gamba\src\main\java\org\example\AddCommand.java
+C:\Users\Tariq\IdeaProjects\gamba\src\main\java\org\example\CreditCard.java
+C:\Users\Tariq\IdeaProjects\gamba\src\main\java\org\example\JackpotSize.java
+>>>>>>> 77e85374969b77757eb20f4f42657a5ee1cea836
