@@ -1,26 +1,11 @@
 package org.example;
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-/*
-    Methods:
-    clearGame -> resets class variables for next calculation or validation
 
-    didUserWin -> returns a boolean value if user won or not type(Boolean)
-
-    getJackpotVal -> returns the jackpot value type (int)
-
-    resetJackpot -> reset the jackpot value
-
-    validBalance -> check if user has enough balance to play the game
-
-    Purpose of class:
-    To calculate if user won from coinflip and to validate what side of the coin the chose
-*/
 public class JackpotWheel {
     public List<String> loseGifs = new ArrayList<String>(
             Arrays.asList("https://cdn.discordapp.com/attachments/954548409396785162/982746601921577000/lose1.gif"
@@ -35,7 +20,8 @@ public class JackpotWheel {
 
     public String winGif = "https://cdn.discordapp.com/attachments/954548409396785162/982746778996711424/jackpot.gif";
     public String thumbnailUrl;
-    private int jackpotVal = 30000;
+    private int jackpotVal = 100000;
+    public int requestAmount = 500;
     public int compGuess;
     public int userReq = 0;
     public int userBalance = 0;
@@ -55,7 +41,7 @@ public class JackpotWheel {
 
     //reset the jackpot value if a user won
     public void resetJackpot(){
-        jackpotVal = 30000;
+        jackpotVal = 100000;
     }
 
     //spin the wheel if the guess is 11 the user wins the jackpot if not they lose 400 and add it to the jackpot value
@@ -69,7 +55,7 @@ public class JackpotWheel {
             return true;
         }
         thumbnailUrl = loseGifs.get((new Random().nextInt(loseGifs.size())));
-        jackpotVal += 250;
+        jackpotVal += 1000;
         return false;
     }
 
@@ -80,7 +66,7 @@ public class JackpotWheel {
             int request = 500;
             int balance = Integer.valueOf(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
 
-            //check if user has enough funds
+            //check if user has enough funds if not return false
             if (request > balance) {
                 event.getChannel().sendMessage("Error Insufficient Funds").queue();
                 return false;

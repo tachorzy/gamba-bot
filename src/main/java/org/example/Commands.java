@@ -1,74 +1,86 @@
 package org.example;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.awt.*;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-/*
-    Methods:
-    Commands -> The constructor
-
-    isCommandValid -> checks if the users command is valid
-    type(boolean) parameters(MessageReceivedEvent event, String[] args, String error, int commandLength)
-
-    checkUser -> check if user exists
-    type(boolean) parameters(String ID)
-
-    updateUserCredits -> updates users credits
-    parameters(MessageReceivedEvent event, int userReq, boolean addCredit)
-
-    onMessageRecieved -> Where commands are held and message events happen
-
-    Purpose of Class:
-    Registers Commands and responds accordingly
-    Gamba Commands
-
-    Notes:
-    When user sends a message it is an event
-    We extract a command and split into words which is a string array args
-    arg[0] is the command rest is parameters or options to the command
-*/
 
 public class Commands extends ListenerAdapter {
     //initialize the prefix and required objects
     public Character PREFIX;
     public DataBase server;
-    public CoinFlip coinFlipObject;
-    public DiceRoll diceRollObject;
-    public JackpotWheel jackpotWheelObject;
-    public Fishing fishingObject;
+    public CoinFlip coinFlipObject = new CoinFlip();
+    public DiceRoll diceRollObject = new DiceRoll();
+    public JackpotWheel jackpotWheelObject = new JackpotWheel();
+    public Slots slotsObject = new Slots();
+    public Fishing fishingObject = new Fishing();
+    public SignUp signupObject = new SignUp();
+    public CreditCard creditCardObject = new CreditCard();
+    public Shop shopObject = new Shop();
+    public Leaderboard leaderboardObject = new Leaderboard();
+    public BadgeBuilder badgeBuilderObject = new BadgeBuilder();
+    public AddBadge addBadgeObject = new AddBadge();
     public EmbedBuilder msgEmbed = new EmbedBuilder();
-    public HashMap<String, List<String>> commandList;
+    public JackpotSize jkpotSizeObject = new JackpotSize();
+    public BanUrl banUrlObject = new BanUrl();
+    public AddCommand addComObject = new AddCommand();
+    public ResetShop resetShopObject = new ResetShop();
+    public Sample sampleComObject = new Sample();
+    public Help helpObject;
+    public Inventory inventoryObject = new Inventory();
+    BadgeShop badgeShopObject = new BadgeShop();
 
+    //used to store commands and badges locally
+    public HashMap<String, List<String>> commandList;
+    public LinkedHashMap<String, List<String>> badgeList;
+    //emotes and messages
+    public String errorEmote = "<a:exclamationmark:1000459825722957905>";
+    public String invalidPurchaseMessage = "Error user requested purchase does not exist please check your request.";
+    public String replaceBadgeMessage = "In order to equip your new badge, please choose a badge that you'd like to replace from your card.\nUse command: **&replacebadge 'oldbadge' 'newbadge**";
+    public String boxEmote = "<:box:1002451287406805032>";
+    public String pepeDS = "<a:pepeDS:1000094640269185086>";
     //Constructor
-    public Commands(DataBase db, Character prefixVal ,CoinFlip coinFlipObj, DiceRoll diceRollObj, JackpotWheel jackpotwheelObj,Fishing fishingObj){
+    public Commands(DataBase db, Character prefixVal ,Help helpObj){
         server = db;
         PREFIX = prefixVal;
-        coinFlipObject = coinFlipObj;
-        diceRollObject = diceRollObj;
-        jackpotWheelObject = jackpotwheelObj;
-        fishingObject = fishingObj;
+        helpObject = helpObj;
         commandList = server.obtainCommands();
+        badgeList = server.obtainBadges();
+        System.out.println("NUMBER OF BADGES: " + badgeList.size());
     }
 
-    // check if users command is valid
-    public boolean isCommandValid(MessageReceivedEvent event, String[] args, String error, int commandLength){
-        if((args.length) < commandLength){
-            event.getChannel().sendMessage(error).queue();
+    //checks if user exists and checks if their command meets the right length
+    public boolean checkUserRequestValid(MessageReceivedEvent event, Integer userMessageLength , Integer commandLength){
+        if(!server.findUser(String.valueOf(event.getMember().getIdLong()))){
+            event.getChannel().sendMessage("Error 404 User does not exist please register using " +PREFIX + "signup to Gamba").queue();
+            return false;
+        }
+        if(userMessageLength < commandLength || userMessageLength > commandLength){
+            event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> Error: wrong format use " + PREFIX + "help to see how command works").queue();
             return false;
         }
         return true;
     }
 
+    //if user attempts to post url thats banned delete and notify them check all arguement values to see to ban or not and return a boolean value
+    public boolean isMessageUsingBanUrl(MessageReceivedEvent event,String[] args){
+        for(String values:args){
+            if (server.isUrlBanned(values)){
+                event.getChannel().deleteMessageById(event.getChannel().getLatestMessageIdLong()).queue();
+                event.getChannel().sendMessage("you used a banned url !bonk <@"+event.getMember().getId() + ">").queue();
+                return true;
+            }
+        }
+        return false;
+    }
+
     //updates users credits
     public void updateCredits(MessageReceivedEvent event, int userReq, boolean addCredit){
-        int creditVal = Integer.valueOf(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
+        int creditVal = Integer.parseInt(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
 
         //if addCredit is true add to credits else subtract
         if(addCredit){ creditVal += userReq; }
@@ -77,12 +89,7 @@ public class Commands extends ListenerAdapter {
         server.updateUserCredits(String.valueOf(event.getMember().getIdLong()),String.valueOf(creditVal));
     }
 
-    //check if a user exists    find user aka
-    public boolean checkUser(MessageReceivedEvent event){
-        if(server.findUser(String.valueOf(event.getMember().getIdLong()))){ return true; }
-        return false;
-    }
-
+    //handles all messages recieved from server
     @Override
     public void onMessageReceived(MessageReceivedEvent event){
 
@@ -93,304 +100,261 @@ public class Commands extends ListenerAdapter {
         String[] args = event.getMessage().getContentRaw().split(" ");
 
         //when the user messages add 5 points to their balance each time
-        if(server.findUser(String.valueOf(event.getMember().getIdLong()))){ updateCredits(event,5,true);}
+        if(server.findUser(String.valueOf(event.getMember().getIdLong()))){ updateCredits(event,10,true);}
 
-        //if user attempts to post url thats banned delete and notify them
-        if (server.isUrlBanned(args[0])) {
-            event.getChannel().deleteMessageById(event.getChannel().getLatestMessageIdLong()).queue();
-            event.getChannel().sendMessage("you used a banned url !bonk <@"+event.getMember().getId() + ">").queue();
-        }
+        //checks if user used a ban url
+        if(isMessageUsingBanUrl(event,args)){return;}
 
-        //parse the command and check if its within our switch statement
-        else if(args[0].charAt(0) == PREFIX){
+        //if user posts a url thats not banned do not continue to avoid throwing out error
+        if(args[0].contains("https")){ return;}
+
+        //parse the command and check if its within our switch statement  note bug if you just send a picture
+        if(args[0].charAt(0) == PREFIX){
+            //if user uses a requested command in shop display it
             if(commandList.containsKey(args[0].substring(1)) && server.getCommandPermission(String.valueOf(event.getMember().getIdLong()),args[0].substring(1))){
                 event.getChannel().sendMessage(commandList.get(args[0].substring(1)).get(0)).queue();
+                return;
             }
-            else{
-                switch(args[0].substring(1)){
-                    //builds an embed to show user all the commands
-                    case "help":
-                        msgEmbed.setColor(Color.YELLOW);
-                        msgEmbed.setTitle("Commands:");
-                        msgEmbed.setDescription("Use the Prefix & before command names");
-                        msgEmbed.addField("help","displays embed of commands to user",false);
-                        msgEmbed.addField("creditcard","displays users balance",false);
-                        msgEmbed.addField("signup","Signs up new user to be able to gamba",false);
-                        msgEmbed.addField("fish","pay 10 buckeroos to cast out bait, highest payout is catching a Megaladon",false);
-                        msgEmbed.addField("coinflip","ex: &coinflip heads 100  BET RANGE: (1-250) ",false);
-                        msgEmbed.addField("diceroll","Win by rolling a 3 or a 6, if you roll a 6 you get a bonus bet multiplier\nMultiplier: 1:50%,2:100%,3:150%,4:225%,5:300%,6:400%\n ex: &diceroll 500  BET RANGE: (500-2000) ",false);
-                        msgEmbed.addField("spinwheel", "Initial Jackpot Value: 30,000\nCost per spin: 500 ",false);
-                        msgEmbed.addField("fish", "reward values: 5,10,15,20,35,45,75,100,200,500\nCost per line due to Sussy Tax: 10 ",false);
-                        msgEmbed.addField("jackpotsize", "returns jackpot size for spinwheel",false);
-                        msgEmbed.addField("shop", "Shows Sussy's Megacenter for commands on sale",false);
-                        msgEmbed.addField("purchase", "Makes a request to buy a specific command if user has enough money for specific command",false);
-                        msgEmbed.addField("sample", "Samples a specific command and dms to user how it would look when user uses specific command",false);
-                        msgEmbed.addField("ban", "bans url/image/gif etc requested PERMISSION: MOD",false);
-                        msgEmbed.addField("addcommand", "adds ur/image/gif requested PERMISSION: MOD",false);
 
-                        event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
-                        msgEmbed.clear();
-                        break;
+            //check if user command is in cases below
+            switch(args[0].substring(1)){
+                case "about":
+                    About aboutObject = new About(server); //instantiating here since we need to pass the server (DataBase) thro
+                    aboutObject.printAboutEmbed(event,PREFIX);
+                    break;
+                case "help":
+                    helpObject.printHelpList(event,PREFIX);
+                    break;
+                case "signup":
+                    signupObject.signupUser(event,server.findUser(String.valueOf(event.getMember().getIdLong())),server);
+                    break;
+                case "creditcard":
+                    creditCardObject.printCreditCard(event, server);
+                    break;
+                case "top":
+                    leaderboardObject.printLeaderBoardEmbed(event,server);
+                    break;
+                case "jackpotsize":
+                    jkpotSizeObject.printJkpotSizeEmbed(event);
+                    break;
+                case "shop":
+                    shopObject.printShopEmbed(event,commandList);
+                    break;
+                case "ban":
+                    if(!checkUserRequestValid(event,args.length,2)){break;}
+                    banUrlObject.banLink(args[1],server,event);
+                    break;
+                case "addcommand":
+                    if(!checkUserRequestValid(event,args.length,5)){break;}
+                    if(addComObject.addNewCommand(server,event,args[1],args[2],args[3],args[4])){commandList = server.obtainCommands();}
+                    break;
+                case "resetshop":
+                    if(resetShopObject.isUserMod(server,event)){
+                        commandList = server.obtainCommands();
+                        badgeList = server.obtainBadges();
+                    }
+                    break;
+                case "sample":
+                    if(!checkUserRequestValid(event,args.length,2)){break;}
+                    sampleComObject.sampleCommand(event,commandList,args[1]);
+                    break;
+                case "badgeshop":
+                    badgeShopObject.printBadgeShopEmbed(event,badgeList);
+                    break;
+                case "buy":
+                    if(!checkUserRequestValid(event,args.length,3)){break;}
+                    String searchQuery = args[2];
+                    int balance = Integer.valueOf(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
 
-                    //retrieves users "credit card"
-                    case "creditcard":
-                        if(!(checkUser(event))){
-                            event.getChannel().sendMessage("Error: please specify a valid amount you would like to bet").queue();
+                    if(args[1].equals("command")) {
+                        if (!commandList.containsKey(searchQuery)) {event.getChannel().sendMessage(errorEmote + invalidPurchaseMessage).queue(); break;}
+
+                        int request =  Integer.valueOf(commandList.get(searchQuery).get(3));
+
+                        if (request > balance) { event.getChannel().sendMessage(errorEmote + "Error Insufficient Funds").queue(); break; }
+                        else {
+                            updateCredits(event,request,false);
+                            server.addCommandPermission(String.valueOf(event.getMember().getIdLong()),searchQuery);
+                            event.getChannel().sendMessage("Purchase sucessfully completed! " + pepeDS).queue();
+                        }
+                    }
+                    else if(args[1].equals("badge")) {
+                        if(!badgeList.containsKey(searchQuery)){ event.getChannel().sendMessage(errorEmote + invalidPurchaseMessage).queue(); break; }
+
+                        int request =  Integer.valueOf(badgeList.get(searchQuery).get(4));
+                        if (request > balance) { event.getChannel().sendMessage(errorEmote + "Error Insufficient Funds").queue(); break; }
+
+                        List<String> badgeDetails = badgeList.get(searchQuery);
+                        String requestedBadge = badgeBuilderObject.buildBadge(badgeDetails, searchQuery);
+                        ArrayList<String> userBadges = server.getUserSlotBadges(event.getMember().getId());
+                        ArrayList<String> userInventory = server.getUserInventory(event.getMember().getId());
+
+                        if(userBadges.contains(requestedBadge) || userInventory.contains(searchQuery)) {
+                            event.getChannel().sendMessage(errorEmote + "You already have this badge either displayed or in inventory.").queue();
                             break;
                         }
-                        //build embed to display to user
-                        msgEmbed.setColor(Color.RED);
-                        msgEmbed.setTitle(event.getAuthor().getAsTag());
-                        msgEmbed.setThumbnail(event.getAuthor().getAvatarUrl());
-                        msgEmbed.setDescription("ID:" + event.getAuthor().getId() + "\nCredits: " + server.getUserCredits(String.valueOf(event.getAuthor().getIdLong())));
-                        msgEmbed.setFooter("City: Waka Waka eh eh");
-                        event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
-                        msgEmbed.clear();
-                        break;
 
-                    //registers the user into the database if there exists a user notify them else create a new user and insert into the database
-                    case "signup":
-                        if((server.findUser(String.valueOf(event.getMember().getIdLong())))){
-                            event.getChannel().sendMessage("You are already signed up stop spamming" ).queue();
-                            event.getChannel().sendMessage("https://wompampsupport.azureedge.net/fetchimage?siteId=7575&v=2&jpgQuality=100&width=700&url=https%3A%2F%2Fi.kym-cdn.com%2Fphotos%2Fimages%2Fnewsfeed%2F001%2F741%2F230%2Fb06.jpg" ).queue();
+                        //transaction is done, and adds badge to user inventory before equipping the badge
+                        updateCredits(event,Integer.valueOf(badgeList.get(searchQuery).get(4)),false);
+                        server.addBadgeToInventory(String.valueOf(event.getMember().getIdLong()),searchQuery, requestedBadge);
+                        event.getChannel().sendMessage("Transaction complete... your new badge has been added to your inventory. " + boxEmote).queue();
+
+                        if(userBadges.size() >= 4){ //checking if you have an available badge slot.
+                            String userBadgeSlots = "《 " + userBadges.get(0) + " | " + userBadges.get(1) + " | " + userBadges.get(2) + " | "+ userBadges.get(3) + " 》";
+                            msgEmbed.setColor(Color.WHITE);
+                            msgEmbed.setTitle(errorEmote + "You currently have the maximum amount of badges that can be equipped at a time.");
+                            msgEmbed.setDescription(replaceBadgeMessage);
+                            msgEmbed.addField("Your Current Badge Slots:",userBadgeSlots, false);
+                            event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
+                            msgEmbed.clear();
+                            break;
+                        }
+                        server.equipBadge(event.getMember().getId(), requestedBadge);
+                        event.getChannel().sendMessage("Your new badge has been added to your credit card, enjoy!!! " + pepeDS).queue();
+                    }
+                    break;
+                case "replacebadge":
+                    creditCardObject.replaceBadge(event, badgeList, args[1], args[2], server);
+                    break;
+                case "equipbadge":
+                    creditCardObject.equipBadge(event, badgeList, args[1], server);
+                    break;
+                case "unequipbadge":
+                    creditCardObject.unequipBadge(event, badgeList, args[1], server);
+                    break;
+                case "clearbadges":
+                    creditCardObject.clearBadges(event, server);
+                    break;
+                case "addbadge":
+                    if(addBadgeObject.addNewBadge(event,server, args[1], args[2], args[3], Integer.valueOf(args[4]), Arrays.copyOfRange(args, 5, args.length)));
+                    break;
+                case "inventory":
+                    inventoryObject.printInventoryEmbed(event,server,event.getMember().getId());
+                    break;
+                case "wipeinventory":
+                    inventoryObject.wipeInventory(event,server,event.getMember().getId());
+                    break;
+                case "fish":
+                    if(!checkUserRequestValid(event,args.length,1)){break;}
+                    //check if user has enough balance
+                    if(fishingObject.validBalance(server,event)){
+                        fishingObject.goFish();
+                        if(fishingObject.didUserWin()){
+                            event.getChannel().sendMessage("Congratulations you caught a: " + fishingObject.getCritter() +
+                                    " you earned " + fishingObject.userReq + " after Sussy Tax").queue();
+                            updateCredits(event, fishingObject.userReq, true);
                         }
                         else{
-                            server.insertUser(String.valueOf(event.getMember().getIdLong()));
-                            String message = "<@" + event.getJDA().getSelfUser().getIdLong() + ">" + " has bestowed you the lifestyle of Gamba Addiction";
-                            event.getChannel().sendMessage(message).queue();
-                            event.getChannel().sendMessage("https://c.tenor.com/P6jRgqCgB4EAAAAd/catjam.gif").queue();
+                            event.getChannel().sendMessage("You caught a: " + fishingObject.getCritter() + " which is illegal under Sussy conservation laws, you have been fined 125 credits !holdL <a:policeBear:1002340283364671621>").queue();
+                            updateCredits(event, 125, false);
                         }
-                        break;
-                    case "fish":
-                        if(!(checkUser(event))){
-                            event.getChannel().sendMessage("Error 404 User does not exist please register using &signup to Gamba").queue();
-                            break;
+                    }
+                    //reset object
+                    fishingObject.clearGame();
+                    break;
+
+                //Coinflip game  example of how the general structure can be more details of code in CoinFlip.java
+                case "coinflip":
+                    if(!checkUserRequestValid(event,args.length,3)){break;}
+                    //check if user has valid inputs before calculating game result
+                    if(coinFlipObject.validInput(args[1], args[2],server,event)){
+                        //calculate game result and update value
+                        if(coinFlipObject.didUserWin(args[1])) {
+                            event.getChannel().sendMessage(coinFlipObject.thumbnailUrl).queue();
+                            event.getChannel().sendMessage("Congrats your guess is right!").queueAfter(2, TimeUnit.SECONDS);
+                            updateCredits(event, coinFlipObject.userReq, true);
                         }
-
-                        //if the number of arguments is not enough throw an error
-                        if(!isCommandValid(event,args,"Error: wrong format please try again ex: &spinwheel",1)){ break; }
-
-                        //check if user has enough balance
-                        if(fishingObject.validBalance(server,event)){
-                            fishingObject.goFish();
-                            if(fishingObject.didUserWin()){
-                                event.getChannel().sendMessage("Congratulations you caught a: " + fishingObject.getCritter() +
-                                        " you earned " + fishingObject.userReq + " after Sussy Tax").queue();
-                                updateCredits(event, fishingObject.userReq, true);
-                            }
-                            else{
-                                event.getChannel().sendMessage("You caught a: " + fishingObject.getCritter() + " you lost 10 credits due to Sussy Tax !holdL").queue();
-                                updateCredits(event, fishingObject.userReq, false);
-                            }
-                        }
-                        //reset object
-                        fishingObject.clearGame();
-                        break;
-
-                    //Coinflip game  example of how the general structure can be more details of code in CoinFlip.java
-                    case "coinflip":
-                        //check if user exists if not notify them
-                        if(!(checkUser(event))){
-                            event.getChannel().sendMessage("Error 404 User does not exist please register using &signup to Gamba").queue();
-                            break;
-                        }
-
-                        //if the number of arguments is not enough throw an error
-                        if(!isCommandValid(event,args,"Error: wrong format please try again ex:  &coinflip heads 1000   (command req amount) req is either heads or tails",3)){ break; }
-
-                        //check if user has valid inputs before calculating game result
-                        if(coinFlipObject.validInput(args[1], args[2],server,event)){
-
-                            //calculate game result and update value
-                            if(coinFlipObject.didUserWin(args[1])) {
-                                event.getChannel().sendMessage(coinFlipObject.thumbnailUrl).queue();
-                                event.getChannel().sendMessage("Congrats your guess is right!").queueAfter(2, TimeUnit.SECONDS);
-                                updateCredits(event, coinFlipObject.userReq, true);
-                            }
-                            else{
-                                event.getChannel().sendMessage(coinFlipObject.thumbnailUrl).queue();
-                                event.getChannel().sendMessage("Your guess is wrong !holdL.").queueAfter(2, TimeUnit.SECONDS);
-                                updateCredits(event,coinFlipObject.userReq,false);
-                            }
-                        }
-                        //reset object
-                        coinFlipObject.clearGame();
-                        break;
-
-                    case "diceroll":
-                        if(!(checkUser(event))){
-                            event.getChannel().sendMessage("Error 404 User does not exist please register using &signup to Gamba").queue();
-                            break;
-                        }
-
-                        //if the number of arguments is not enough throw an error
-                        if(!isCommandValid(event,args,"Error: wrong format please try again ex:  &diceroll 1000   (command amount) req is either heads or tails",2)){ break; }
-
-                        //check valid input
-                        if(diceRollObject.validInput(args[1],server,event)){
-                            //check if user won
-                            if(diceRollObject.didUserWin()){
-                                event.getChannel().sendMessage(diceRollObject.thumbnailUrl).queue();
-                                event.getChannel().sendMessage("Congrats you won!").queueAfter(4, TimeUnit.SECONDS);
-                                //if the dice was a six roll for a multipler
-                                if(diceRollObject.betMultipler){
-                                    diceRollObject.calculateMultiplier();
-                                    event.getChannel().sendMessage(diceRollObject.thumbnailUrl).queue();
-                                    event.getChannel().sendMessage("Bonus: " + diceRollObject.bonusVal + "\nTotal: " + diceRollObject.userReq).queueAfter(4, TimeUnit.SECONDS);
-                                }
-                                updateCredits(event, diceRollObject.userReq, true);
-                            }
-                            else{
-                                event.getChannel().sendMessage(diceRollObject.thumbnailUrl).queue();
-                                event.getChannel().sendMessage("You Lost !holdL.").queueAfter(4, TimeUnit.SECONDS);
-                                updateCredits(event,diceRollObject.userReq,false);
-                            }
-                        }
-                        //reset object
-                        diceRollObject.clearGame();
-                        break;
-                    case "spinwheel":
-                        if(!(checkUser(event))){
-                            event.getChannel().sendMessage("Error 404 User does not exist please register using &signup to Gamba").queue();
-                            break;
-                        }
-
-                        //if the number of arguments is not enough throw an error
-                        if(!isCommandValid(event,args,"Error: wrong format please try again ex: &spinwheel",1)){ break; }
-
-                        //check if user has enough balance
-                        if(jackpotWheelObject.validBalance(server,event)){
-                            //check if user won
-                            if(jackpotWheelObject.didUserWin()){
-                                event.getChannel().sendMessage(jackpotWheelObject.thumbnailUrl).queue();
-                                event.getChannel().sendMessage(":tada: :tada: :tada: :tada: :partying_face: JACKPOT!!! :partying_face: :tada: :tada: :tada: :tada:\nhttps://c.tenor.com/nBX1KXnHfqQAAAAC/fishpog.gif").queueAfter(5, TimeUnit.SECONDS);
-                                updateCredits(event, jackpotWheelObject.getJackpotVal(), true);
-
-                                //reset jackpot value
-                                jackpotWheelObject.resetJackpot();
-                            }
-                            else{
-                                event.getChannel().sendMessage(jackpotWheelObject.thumbnailUrl).queue();
-                                event.getChannel().sendMessage("You Lost !holdL.").queueAfter(5, TimeUnit.SECONDS);
-                                updateCredits(event,jackpotWheelObject.userReq,false);
-                            }
-                        }
-                        //reset object
-                        jackpotWheelObject.clearGame();
-                        break;
-
-                    //display embed of the current jackpot value for wheel
-                    case "jackpotsize":
-                        msgEmbed.setColor(Color.cyan);
-                        msgEmbed.setTitle("JACKPOT GRAND PRIZE");
-                        msgEmbed.setThumbnail("https://media0.giphy.com/media/l41YevbrMDaHgismI/200.gif");
-                        msgEmbed.setDescription("Value\n" +String.valueOf(jackpotWheelObject.getJackpotVal()));
-                        event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
-                        msgEmbed.clear();
-                        break;
-
-                    case "shop":
-                        msgEmbed.setColor(Color.MAGENTA);
-                        msgEmbed.setTitle("SUSSY'S MEGACENTER™");
-                        msgEmbed.setImage("https://arc-anglerfish-arc2-prod-tronc.s3.amazonaws.com/public/YPZFICVQMRGXPMWDR2HVEEMTNA.jpg");
-                        Iterator comIterator = commandList.entrySet().iterator();
-                        while(comIterator.hasNext()){
-                            Map.Entry element = (Map.Entry)comIterator.next();
-                            List<String> elementVal = (List<String>)element.getValue();
-                            msgEmbed.addField((String)element.getKey(),"Price: $"+elementVal.get(1),false);
-                        }
-                        event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
-                        msgEmbed.clear();
-                        break;
-
-                    case "purchase":
-                        if(!(checkUser(event))){
-                            event.getChannel().sendMessage("Error 404 User does not exist please register using &signup to Gamba").queue();
-                            break;
-                        }
-
-                        if(!commandList.containsKey(args[1])){
-                            event.getChannel().sendMessage("Error user requested purchase does not exist please check your request.").queue();
-                            break;
-                        }
-                        //if the number of arguments is not enough throw an error
-                        if(!isCommandValid(event,args,"Error: wrong format please try again ex of purchasing kermit dance:  &purchase kermitdance",2)){break;}
                         else{
-                            //check users requests if its more than needed then do not allow them to gamble else allow
-                            int request =  Integer.valueOf(commandList.get(args[1]).get(1));
-                            int balance = Integer.valueOf(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
+                            event.getChannel().sendMessage(coinFlipObject.thumbnailUrl).queue();
+                            event.getChannel().sendMessage("Your guess is wrong !holdL.").queueAfter(2, TimeUnit.SECONDS);
+                            updateCredits(event,coinFlipObject.userReq,false);
+                        }
+                    }
+                    //reset object
+                    coinFlipObject.clearGame();
+                    break;
 
-                            //check if user has enough funds
-                            if (request > balance) {
-                                event.getChannel().sendMessage("Error Insufficient Funds").queue();
+                case "diceroll":
+                    if(!checkUserRequestValid(event,args.length,2)){break;}
+                    //check valid input
+                    if(diceRollObject.validInput(args[1],server,event)){
+                        //check if user won
+                        if(diceRollObject.didUserWin()){
+                            event.getChannel().sendMessage(diceRollObject.thumbnailUrl).queue();
+                            event.getChannel().sendMessage("Congrats you won!").queueAfter(4, TimeUnit.SECONDS);
+                            //if the dice was a six roll for a multipler
+                            if(diceRollObject.betMultipler){
+                                diceRollObject.calculateMultiplier();
+                                event.getChannel().sendMessage(diceRollObject.thumbnailUrl)
+                                        .queue();
+                                event.getChannel().sendMessage("Bonus: " + diceRollObject.bonusVal + "\nTotal: " + diceRollObject.userReq).queueAfter(4, TimeUnit.SECONDS);
                             }
-                            else{
-                                updateCredits(event,Integer.valueOf(commandList.get(args[1]).get(1)),false);
-                                server.addCommandPermission(String.valueOf(event.getMember().getIdLong()),args[1]);
-                                event.getChannel().sendMessage("Purchase sucessfully completed! :partying_face:").queue();
+                            updateCredits(event, diceRollObject.userReq, true);
+                        }
+                        else{
+                            event.getChannel().sendMessage(diceRollObject.thumbnailUrl).queue();
+                            event.getChannel().sendMessage("You Lost !holdL.").queueAfter(4, TimeUnit.SECONDS);
+                            updateCredits(event,diceRollObject.userReq,false);
+                        }
+                    }
+                    //reset object
+                    diceRollObject.clearGame();
+                    break;
+                case "spinwheel":
+                    if(!checkUserRequestValid(event,args.length,1)){break;}
+                    //check if user has enough balance
+                    if(jackpotWheelObject.validBalance(server,event)){
+                        //check if user won
+                        if(jackpotWheelObject.didUserWin()){
+                            event.getChannel().sendMessage(jackpotWheelObject.thumbnailUrl).queue();
+                            event.getChannel().sendMessage(":tada: :tada: :tada: :tada: :partying_face: JACKPOT!!! AMOUNT: " + jackpotWheelObject.getJackpotVal() + ":partying_face: :tada: :tada: :tada: :tada:\nhttps://c.tenor.com/nBX1KXnHfqQAAAAC/fishpog.gif").queueAfter(5, TimeUnit.SECONDS);
+                            updateCredits(event, jackpotWheelObject.getJackpotVal(), true);
+
+                            //reset jackpot value
+                            jackpotWheelObject.resetJackpot();
+                        }
+                        else{
+                            event.getChannel().sendMessage(jackpotWheelObject.thumbnailUrl).queue();
+                            event.getChannel().sendMessage("You Lost !holdL.").queueAfter(5, TimeUnit.SECONDS);
+                            updateCredits(event,jackpotWheelObject.userReq,false);
+                        }
+                    }
+                    //reset object
+                    jackpotWheelObject.clearGame();
+                    break;
+                case "slot":
+                    if(!checkUserRequestValid(event,args.length,2)){break;}
+                    if(slotsObject.validInput(args[1],server,event)) {
+                        ArrayList<String> reelResults = slotsObject.getReelResults();
+                        slotsObject.buildSlotEmbed(event, reelResults, args[1]);
+
+                        if(slotsObject.didUserWin(reelResults)){
+                            String book = slotsObject.fruitList.get(0);
+                            String lucky7 = slotsObject.fruitList.get(1);
+                            //twitch meme easter egg, if you win with all books you win the jackpot of 400k on top of your bonus.
+                            if(reelResults.get(0).equals(book) && !reelResults.contains(lucky7))
+                                updateCredits(event, slotsObject.userReq + slotsObject.bookJackpot, true);
+                            //if you win with 777 you get the grand jackpot on top of your bonus.
+                            else if(reelResults.get(0).equals(lucky7) && reelResults.get(1).equals(lucky7) && reelResults.get(2).equals(lucky7)){
+                                updateCredits(event, slotsObject.userReq + slotsObject.bookJackpot, true);
+                            }
+                            else{ //default wins
+                                updateCredits(event,slotsObject.userReq,true);
                             }
                         }
-                        break;
-
-                    //goth users need to have mod command
-                    case "ban":
-                        if(!(checkUser(event))){
-                            event.getChannel().sendMessage("Error 404 User does not exist please register using &signup to Gamba").queue();
-                            break;
+                        else{
+                            updateCredits(event,slotsObject.userReq,false);
                         }
+                    }
+                    slotsObject.clearGame();
+                    break;
+                default:
+                    break;
 
-                        if(!isCommandValid(event,args,"Error: wrong format please try again ex: &bancommand (urlhere)",2)){break;}
-
-                        //checks if user is mod before using command
-                        if(server.isUserMod(String.valueOf(event.getMember().getIdLong()))){
-                            System.out.println("true");
-                            server.insertBanUrl(args[1]);
-                            event.getChannel().sendMessage("Url requested has been banned!" + "<@" + event.getMember().getId() + ">" ).queue();
-                        }
-                        else{ event.getChannel().sendMessage("Weak pleb no powers for you !holdL :fishpain:").queue(); }
-                        break;
-
-                    case "addcommand":
-                        if(!(checkUser(event))){
-                            event.getChannel().sendMessage("Error 404 User does not exist please register using &signup to Gamba").queue();
-                            break;
-                        }
-
-                        if(!isCommandValid(event,args,"Error: wrong format please try again format name url type cost ex: &addcommand nike (urlhere) gif 1000",4)){break;}
-
-                        //checks if user is mod before using command
-                        if(server.isUserMod(String.valueOf(event.getMember().getIdLong()))){
-                            //command name , url , type , cost
-                            server.insertCommand(args[1],args[2],args[3],args[4]);
-                            server.insertBanUrl(args[2]);
-                            event.getChannel().sendMessage("Added a command! :partying_face:").queue();
-                            commandList = server.obtainCommands();
-                        }
-                        else{ event.getChannel().sendMessage("Weak pleb no powers for you !holdL :fishpain:").queue(); }
-                        break;
-                    //bug space between code
-                    case "sample":
-                        if(!(checkUser(event))){
-                            event.getChannel().sendMessage("Error 404 User does not exist please register using &signup to Gamba").queue();
-                            break;
-                        }
-                        if(!isCommandValid(event,args,"Error: wrong format please try again ex: &sample kermitdance",2)){break;}
-
-                        if(commandList.containsKey(args[1])){
-                            event.getMember().getUser().openPrivateChannel().flatMap(
-                                    channel -> channel.sendMessage(commandList.get(args[1]).get(0))).queue();
-                        }
-                        else{ event.getChannel().sendMessage("Command does not exist " + "<@" + event.getMember().getId() + ">").queue(); }
-                        break;
-
-                    default:
-                        break;
-                }
             }
         }
     }
 }
-
 
 
 

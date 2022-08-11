@@ -2,19 +2,14 @@ package org.example;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import javax.security.auth.login.LoginException;
+import javax.swing.plaf.basic.BasicOptionPaneUI;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 
-/*
-    Purpose of Class:
-    Create Default takes token and creates the bot
-    Event listener listens to user commands
-    Data about the database and the bot is obtained from env.txt file
-    To add your file, create a new object and pass it in the commands object below and modify the constructor
-*/
 public  class DiscordBot {
     public static void main(String[] args) throws LoginException, FileNotFoundException {
 
@@ -25,6 +20,7 @@ public  class DiscordBot {
         String collectionUser = null;
         String collectionCommands = null;
         String collectionBanUrl = null;
+        String collectionBadges = null;
         String databaseName = null;
         String DISCORDTOKEN = null;
         String DBTOKEN = null;
@@ -35,23 +31,26 @@ public  class DiscordBot {
             dataValue = data.substring((data.indexOf(':') + 1));
             Name = data.substring(0,data.indexOf(':'));
             switch(Name){
-                case "testbottoken":
-                    DISCORDTOKEN = dataValue;
-                    break;
-                case "dbtoken":
-                    DBTOKEN = dataValue;
-                    break;
-                case "testcollection":
-                    collectionUser = dataValue;
-                    break;
-                case "testcommand":
-                    collectionCommands = dataValue;
+                case "badge":
+                    collectionBadges = dataValue;
                     break;
                 case "banurllist":
                     collectionBanUrl = dataValue;
                     break;
+                case "bottoken":
+                    DISCORDTOKEN = dataValue;
+                    break;
+                case "collection":
+                    collectionUser = dataValue;
+                    break;
+                case "command":
+                    collectionCommands = dataValue;
+                    break;
                 case "database":
                     databaseName = dataValue;
+                    break;
+                case "dbtoken":
+                    DBTOKEN = dataValue;
                     break;
                 case "prefix":
                     prefixVal = dataValue.charAt(0);
@@ -63,11 +62,13 @@ public  class DiscordBot {
         JDA bot = JDABuilder.createDefault(DISCORDTOKEN)
                 .setActivity(Activity.playing("Diceroll #Gamba Addiction"))
                 .build();
-
         //NOTE: if you want to create a new class for a new feature implementation, create a new object below
-        bot.addEventListener(new Commands(new DataBase(DBTOKEN,databaseName,collectionUser,collectionCommands,collectionBanUrl),prefixVal,new CoinFlip(),new DiceRoll(),new JackpotWheel(),new Fishing()));
-        System.out.println("Bot is up and running!");
-
+        DataBase server = new DataBase(DBTOKEN,databaseName,collectionUser,collectionCommands,collectionBanUrl,collectionBadges);
+        bot.addEventListener(new Commands(server,prefixVal,new Help(prefixVal)));
+        bot.addEventListener(new Help(prefixVal));
+        bot.addEventListener(new About(server));
+        bot.addEventListener(new BadgeShop());
+        System.out.println(bot.getSelfUser().getName() + " is up and running!");
     }
 }
 

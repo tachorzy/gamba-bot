@@ -1,6 +1,5 @@
 package org.example;
 
-import com.mongodb.internal.connection.Server;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.util.ArrayList;
@@ -8,17 +7,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-/*
-    Methods:
-    clearGame -> resets class variables for next calculation or validation
-
-    didUserWin -> returns a boolean value if user won or not type(Boolean)
-
-    validInput -> returns a boolean value to check if the users input is valid type(Boolean)
-
-    Purpose of class:
-    To calculate if user won from coinflip and to validate what side of the coin the chose
-*/
 public class CoinFlip {
     public String coinflipList[] = {"heads","tails"};
     public List<String> coinSideName = new ArrayList<String>(Arrays.asList("head","heads","tail","tails"));
@@ -26,6 +14,8 @@ public class CoinFlip {
     public String compGuess;
     public int userReq = 0;
     public int userBalance = 0;
+    public int coinGameMinAmount = 0;
+    public int coinGameMaxAmount = 3000;
 
     public void clearGame(){
         thumbnailUrl = "";
@@ -65,8 +55,8 @@ public class CoinFlip {
                 int balance = Integer.valueOf(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
 
             //handle if user requests less than 0 throw error
-            if (request <= 0  ||  request > 250){
-                event.getChannel().sendMessage("Error: please specify a valid amount you would like to bet range 1-250").queue();
+            if (request <= coinGameMinAmount  ||  request > coinGameMaxAmount){
+                event.getChannel().sendMessage("Error: please specify a valid amount you would like to bet range " + coinGameMinAmount + "-" + coinGameMaxAmount).queue();
                 return false;
             }
             //check if user has enough funds
