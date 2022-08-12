@@ -10,14 +10,16 @@ public class SignUp {
 
     //if user exist add to db if not then notify user to stop spamming
     public void signupUser(MessageReceivedEvent event,boolean userExist,DataBase server){
+        String user =  "<@" + event.getMember().getId() + ">";
         if(!userExist){
             server.insertUser(String.valueOf(event.getMember().getIdLong()));
-            String message = signupEmote+"**WELCOME!** <@" + event.getJDA().getSelfUser().getIdLong() + ">" + " has bestowed you the lifestyle of Gamba Addiction" + signupEmote;
+            String message = signupEmote+"**WELCOME!** <@" + event.getJDA().getSelfUser().getIdLong() + ">" + " has bestowed you the lifestyle of Gamba Addiction" + signupEmote + " " + user;
             event.getChannel().sendMessage(message).queue();
             event.getChannel().sendMessage(signupImage).queue();
+            return;
         }
 
-        event.getChannel().sendMessage(spamNotificationMessage ).queue();
+        event.getChannel().sendMessage(spamNotificationMessage + " " + user ).queue();
         event.getChannel().sendMessage(spamNotificationImage ).queue();
     }
     //overidden function that is used in the About class on button interaction, where the MessageReceivedEvent is unavailable so instead we pass the channelID

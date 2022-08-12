@@ -1,6 +1,5 @@
 package org.example;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
@@ -30,9 +29,10 @@ public class Commands extends ListenerAdapter {
     public AddCommand addComObject = new AddCommand();
     public ResetShop resetShopObject = new ResetShop();
     public Sample sampleComObject = new Sample();
+    public Gift giftObject = new Gift();
     public Help helpObject;
     public Inventory inventoryObject = new Inventory();
-    BadgeShop badgeShopObject = new BadgeShop();
+    public BadgeShop badgeShopObject = new BadgeShop();
 
     //used to store commands and badges locally
     public HashMap<String, List<String>> commandList;
@@ -43,6 +43,13 @@ public class Commands extends ListenerAdapter {
     public String replaceBadgeMessage = "In order to equip your new badge, please choose a badge that you'd like to replace from your card.\nUse command: **&replacebadge 'oldbadge' 'newbadge**";
     public String boxEmote = "<:box:1002451287406805032>";
     public String pepeDS = "<a:pepeDS:1000094640269185086>";
+
+    //speficic channels
+    public String casinoChannelID = "1004588844475240448";
+    public String loungeChannelID = "1001755724961038396";
+    public String jackpotWheelChannelID = "1004589024998080595";
+    public String fishingChannelID = "1002048071661801563";
+
     //Constructor
     public Commands(DataBase db, Character prefixVal ,Help helpObj){
         server = db;
@@ -55,12 +62,14 @@ public class Commands extends ListenerAdapter {
 
     //checks if user exists and checks if their command meets the right length
     public boolean checkUserRequestValid(MessageReceivedEvent event, Integer userMessageLength , Integer commandLength){
+        String userID =  "<@" + event.getMember().getId() + ">";
+
         if(!server.findUser(String.valueOf(event.getMember().getIdLong()))){
-            event.getChannel().sendMessage("Error 404 User does not exist please register using " +PREFIX + "signup to Gamba").queue();
+            event.getChannel().sendMessage("Error 404 User does not exist please register using " +PREFIX + "signup to Gamba " + userID).queue();
             return false;
         }
         if(userMessageLength < commandLength || userMessageLength > commandLength){
-            event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> Error: wrong format use " + PREFIX + "help to see how command works").queue();
+            event.getChannel().sendMessage("<a:exclamationmark:1000459825722957905> Error: wrong format use " + PREFIX + "help to see how command works " + userID).queue();
             return false;
         }
         return true;
@@ -68,14 +77,52 @@ public class Commands extends ListenerAdapter {
 
     //if user attempts to post url thats banned delete and notify them check all arguement values to see to ban or not and return a boolean value
     public boolean isMessageUsingBanUrl(MessageReceivedEvent event,String[] args){
+        String userID =  "<@" + event.getMember().getId() + ">";
+
         for(String values:args){
             if (server.isUrlBanned(values)){
                 event.getChannel().deleteMessageById(event.getChannel().getLatestMessageIdLong()).queue();
-                event.getChannel().sendMessage("you used a banned url !bonk <@"+event.getMember().getId() + ">").queue();
+                event.getChannel().sendMessage("you used a banned url !bonk " + userID).queue();
                 return true;
             }
         }
         return false;
+    }
+
+    //check if command is in the right channel if not then throw error message and return false
+    public boolean isChannelValid(MessageReceivedEvent event,String commandType){
+        String userID =  "<@" + event.getMember().getId() + ">";
+        String errorMessage;
+        String channelID;
+
+        switch (commandType){
+            case "casino":
+                channelID = casinoChannelID;
+                errorMessage ="Please use this command in casino channel! ";
+                break;
+            case "lounge":
+                channelID = loungeChannelID;
+                errorMessage ="Please use this command in lounge channel! ";
+                break;
+            case "wheel":
+                channelID = jackpotWheelChannelID;
+                errorMessage ="Please use this command in wheel channel! ";
+                break;
+            case "fish":
+                channelID = fishingChannelID;
+                errorMessage ="Please use this command in fish channel! ";
+                break;
+            default:
+                channelID = "error";
+                errorMessage = "Error 404 invalid channel contact mods and do no panic!";
+                break;
+        }
+        if(!event.getChannel().getId().equals(channelID)) {
+            event.getChannel().deleteMessageById(event.getChannel().getLatestMessageIdLong()).queue();
+            event.getChannel().sendMessage(errorMessage + " " + userID).queue();
+            return false;
+        }
+        return true;
     }
 
     //updates users credits
@@ -100,13 +147,18 @@ public class Commands extends ListenerAdapter {
         String[] args = event.getMessage().getContentRaw().split(" ");
 
         //when the user messages add 5 points to their balance each time
-        if(server.findUser(String.valueOf(event.getMember().getIdLong()))){ updateCredits(event,10,true);}
+        if(server.findUser(String.valueOf(event.getMember().getIdLong()))){ updateCredits(event,15,true);}
 
         //checks if user used a ban url
         if(isMessageUsingBanUrl(event,args)){return;}
 
         //if user posts a url thats not banned do not continue to avoid throwing out error
         if(args[0].contains("https")){ return;}
+
+        //if user posts a picture do not continue to avoid throwing out error
+        if(args[0].isEmpty()){return;}
+
+        String userID =  "<@" + event.getMember().getId() + ">";
 
         //parse the command and check if its within our switch statement  note bug if you just send a picture
         if(args[0].charAt(0) == PREFIX){
@@ -123,21 +175,26 @@ public class Commands extends ListenerAdapter {
                     aboutObject.printAboutEmbed(event,PREFIX);
                     break;
                 case "help":
-                    helpObject.printHelpList(event,PREFIX);
+                    if(!isChannelValid(event,"lounge")){break;}
+                    helpObject.printHelpList(event, PREFIX);
                     break;
                 case "signup":
+                    if(!isChannelValid(event,"lounge")){break;}
                     signupObject.signupUser(event,server.findUser(String.valueOf(event.getMember().getIdLong())),server);
                     break;
                 case "creditcard":
+                    if(!isChannelValid(event,"lounge")){break;}
                     creditCardObject.printCreditCard(event, server);
                     break;
                 case "top":
                     leaderboardObject.printLeaderBoardEmbed(event,server);
                     break;
                 case "jackpotsize":
+                    if(!isChannelValid(event,"lounge")){break;}
                     jkpotSizeObject.printJkpotSizeEmbed(event);
                     break;
                 case "shop":
+                    if(!isChannelValid(event,"lounge")){break;}
                     shopObject.printShopEmbed(event,commandList);
                     break;
                 case "ban":
@@ -155,34 +212,52 @@ public class Commands extends ListenerAdapter {
                     }
                     break;
                 case "sample":
+                    if(!isChannelValid(event,"lounge")){break;}
                     if(!checkUserRequestValid(event,args.length,2)){break;}
                     sampleComObject.sampleCommand(event,commandList,args[1]);
                     break;
                 case "badgeshop":
+                    if(!isChannelValid(event,"lounge")){break;}
                     badgeShopObject.printBadgeShopEmbed(event,badgeList);
                     break;
                 case "buy":
+                    //handle buy multiple commands
+                    if(!isChannelValid(event,"lounge")){break;}
+
+
                     if(!checkUserRequestValid(event,args.length,3)){break;}
                     String searchQuery = args[2];
-                    int balance = Integer.valueOf(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
+
+                    int balance = Integer.parseInt(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
+
+                    //if not either command throw error
+                    if(!args[1].equals("command") && !args[1].equals("badge")) {
+                        event.getChannel().sendMessage(errorEmote + "Invalid again please use &help to see command usage. " + userID).queue();
+                        break;
+                    }
 
                     if(args[1].equals("command")) {
                         if (!commandList.containsKey(searchQuery)) {event.getChannel().sendMessage(errorEmote + invalidPurchaseMessage).queue(); break;}
 
+                        if(server.getCommandPermission(String.valueOf(event.getMember().getIdLong()),args[2])){
+                            event.getChannel().sendMessage("User has already bought command " + userID).queue();
+                            break;
+                        }
+
                         int request =  Integer.valueOf(commandList.get(searchQuery).get(3));
 
-                        if (request > balance) { event.getChannel().sendMessage(errorEmote + "Error Insufficient Funds").queue(); break; }
+                        if (request > balance) { event.getChannel().sendMessage(errorEmote + "Error Insufficient Funds " + userID).queue(); break; }
                         else {
                             updateCredits(event,request,false);
                             server.addCommandPermission(String.valueOf(event.getMember().getIdLong()),searchQuery);
-                            event.getChannel().sendMessage("Purchase sucessfully completed! " + pepeDS).queue();
+                            event.getChannel().sendMessage("Purchase sucessfully completed! " + pepeDS + " " + userID).queue();
                         }
                     }
                     else if(args[1].equals("badge")) {
                         if(!badgeList.containsKey(searchQuery)){ event.getChannel().sendMessage(errorEmote + invalidPurchaseMessage).queue(); break; }
 
-                        int request =  Integer.valueOf(badgeList.get(searchQuery).get(4));
-                        if (request > balance) { event.getChannel().sendMessage(errorEmote + "Error Insufficient Funds").queue(); break; }
+                        int request =  Integer.parseInt(badgeList.get(searchQuery).get(4));
+                        if (request > balance) { event.getChannel().sendMessage(errorEmote + "Error Insufficient Funds " + userID).queue(); break; }
 
                         List<String> badgeDetails = badgeList.get(searchQuery);
                         String requestedBadge = badgeBuilderObject.buildBadge(badgeDetails, searchQuery);
@@ -190,12 +265,12 @@ public class Commands extends ListenerAdapter {
                         ArrayList<String> userInventory = server.getUserInventory(event.getMember().getId());
 
                         if(userBadges.contains(requestedBadge) || userInventory.contains(searchQuery)) {
-                            event.getChannel().sendMessage(errorEmote + "You already have this badge either displayed or in inventory.").queue();
+                            event.getChannel().sendMessage(errorEmote + "You already have this badge either displayed or in inventory." + userID).queue();
                             break;
                         }
 
                         //transaction is done, and adds badge to user inventory before equipping the badge
-                        updateCredits(event,Integer.valueOf(badgeList.get(searchQuery).get(4)),false);
+                        updateCredits(event,Integer.parseInt(badgeList.get(searchQuery).get(4)),false);
                         server.addBadgeToInventory(String.valueOf(event.getMember().getIdLong()),searchQuery, requestedBadge);
                         event.getChannel().sendMessage("Transaction complete... your new badge has been added to your inventory. " + boxEmote).queue();
 
@@ -210,31 +285,55 @@ public class Commands extends ListenerAdapter {
                             break;
                         }
                         server.equipBadge(event.getMember().getId(), requestedBadge);
-                        event.getChannel().sendMessage("Your new badge has been added to your credit card, enjoy!!! " + pepeDS).queue();
+                        event.getChannel().sendMessage("Your new badge has been added to your credit card, enjoy!!! " + pepeDS + " " + userID).queue();
                     }
                     break;
                 case "replacebadge":
+                    if(!isChannelValid(event,"lounge")){break;}
                     creditCardObject.replaceBadge(event, badgeList, args[1], args[2], server);
                     break;
                 case "equipbadge":
+                    if(!isChannelValid(event,"lounge")){break;}
                     creditCardObject.equipBadge(event, badgeList, args[1], server);
                     break;
                 case "unequipbadge":
+                    if(!isChannelValid(event,"lounge")){break;}
                     creditCardObject.unequipBadge(event, badgeList, args[1], server);
                     break;
                 case "clearbadges":
+                    if(!isChannelValid(event,"lounge")){break;}
                     creditCardObject.clearBadges(event, server);
                     break;
                 case "addbadge":
-                    if(addBadgeObject.addNewBadge(event,server, args[1], args[2], args[3], Integer.valueOf(args[4]), Arrays.copyOfRange(args, 5, args.length)));
+                    if(!isChannelValid(event,"lounge")){break;}
+                    //if(addBadgeObject.addNewBadge(event,server, args[1], args[2], args[3], Integer.valueOf(args[4]), Arrays.copyOfRange(args, 5, args.length))); //Uncomment when we change db credits from strings to int
+                    if(addBadgeObject.addNewBadge(event,server, args[1], args[2], args[3], args[4], Arrays.copyOfRange(args, 5, args.length)));
                     break;
                 case "inventory":
+                    if(!isChannelValid(event,"lounge")){break;}
                     inventoryObject.printInventoryEmbed(event,server,event.getMember().getId());
                     break;
                 case "wipeinventory":
+                    if(!isChannelValid(event,"lounge")){break;}
                     inventoryObject.wipeInventory(event,server,event.getMember().getId());
                     break;
+                case "beg":
+                    if(!isChannelValid(event,"lounge")){break;}
+                    if(!checkUserRequestValid(event,args.length,2)){break;}
+                    event.getChannel().deleteMessageById(event.getChannel().getLatestMessageIdLong()).queue();
+                    event.getChannel().sendMessage(args[1] + " Please spare some <a:SussyCoin:1004568859648466974> UwU \n-" + event.getMember().getNickname()).queue();
+                    event.getChannel().sendMessage("https://tenor.com/view/cute-kitten-begging-attention-cat-gif-8380127").queue();
+                    break;
+                case "gift":
+                    if(!isChannelValid(event,"lounge")){break;}
+                    if(giftObject.giftCredits(server,event,args[2],args[1])){
+                        event.getChannel().deleteMessageById(event.getChannel().getLatestMessageIdLong()).queue();
+                        event.getChannel().sendMessage(userID + " gifted to " + args[2] + "\n AMOUNT: " + args[1] +  " <a:SussyCoin:1004568859648466974>").queue();
+                    }
+                    break;
                 case "fish":
+                    if(!isChannelValid(event,"fish")){break;}
+                    fishingObject.beginFishing(server,event);
                     if(!checkUserRequestValid(event,args.length,1)){break;}
                     //check if user has enough balance
                     if(fishingObject.validBalance(server,event)){
@@ -255,7 +354,10 @@ public class Commands extends ListenerAdapter {
 
                 //Coinflip game  example of how the general structure can be more details of code in CoinFlip.java
                 case "coinflip":
+                    if(!isChannelValid(event,"casino")){break;}
                     if(!checkUserRequestValid(event,args.length,3)){break;}
+                    coinFlipObject.flipCoin(server,event,args[1],args[2]);
+
                     //check if user has valid inputs before calculating game result
                     if(coinFlipObject.validInput(args[1], args[2],server,event)){
                         //calculate game result and update value
@@ -275,6 +377,9 @@ public class Commands extends ListenerAdapter {
                     break;
 
                 case "diceroll":
+                    if(!isChannelValid(event,"casino")){break;}
+                    diceRollObject.rollDice(server,event,args[1]);
+
                     if(!checkUserRequestValid(event,args.length,2)){break;}
                     //check valid input
                     if(diceRollObject.validInput(args[1],server,event)){
@@ -301,6 +406,9 @@ public class Commands extends ListenerAdapter {
                     diceRollObject.clearGame();
                     break;
                 case "spinwheel":
+                    if(!isChannelValid(event,"wheel")){break;}
+                    jackpotWheelObject.startSpinWheel(server,event);
+
                     if(!checkUserRequestValid(event,args.length,1)){break;}
                     //check if user has enough balance
                     if(jackpotWheelObject.validBalance(server,event)){

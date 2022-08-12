@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
+
 /* Slots is going to be a game with a high volatility meaning that you'll lose more often than you will win, but has large payouts
  * The bet range will be: 250-20,000. There are two jackpots, the normal one 400k (when you get 3 books, twitch meme/easter egg)
  * and then the grand jackpot from landing 3 Lucky 7s, right now it's 700k but we can give it multiple possible pay-outs.
@@ -14,7 +15,7 @@ import java.util.Random;
  *  (1) Land a full row of the same emote
  *  (2) Land at least one lucky 7.
  * Bonus multipliers are applied to all wins,
- */
+*/
 public class Slots {
     public EmbedBuilder slotEmbed = new EmbedBuilder();
     public Color slotEmbedColor = Color.ORANGE;

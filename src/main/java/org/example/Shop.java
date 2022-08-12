@@ -27,11 +27,9 @@ public class Shop {
         shopEmbed.setDescription(shopEmbedDescription);
         shopEmbed.setThumbnail(shopEmbedThumbnail);
         shopEmbed.setImage(shopEmbedImage);
-        Iterator comIterator = commandList.entrySet().iterator();
-        while (comIterator.hasNext()) {
-            Map.Entry element = (Map.Entry) comIterator.next();
-            java.util.List<String> elementVal = (List<String>) element.getValue();
-            shopEmbed.addField((String) element.getKey(), stackCashEmote + " Price: $" + elementVal.get(1), true);
+        for (Map.Entry<String, List<String>> stringListEntry : commandList.entrySet()) {
+            List<String> elementVal = (List<String>) ((Map.Entry) stringListEntry).getValue();
+            shopEmbed.addField((String) ((Map.Entry) stringListEntry).getKey(), stackCashEmote + " Price: $" + elementVal.get(1), true);
         }
         shopEmbed.setTimestamp(Instant.now());
         shopEmbed.setFooter(tradeMark);

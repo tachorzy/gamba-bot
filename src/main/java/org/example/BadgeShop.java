@@ -9,11 +9,11 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.awt.*;
 import java.time.Instant;
 import java.util.*;
 import java.util.List;
+import java.util.Map;
 import java.lang.Math;
 
 public class BadgeShop extends ListenerAdapter {
@@ -25,6 +25,7 @@ public class BadgeShop extends ListenerAdapter {
     public String moneyCashEmote = "<a:moneycash:1000225442260861018>";
     public String sussyCoin = "<a:SussyCoin:1004568859648466974>";
     public String tradeMark = "© 2022 Sussy Inc. All Rights Reserved.";
+    public String thumbnailUrl = "https://preview.redd.it/tf77kzvpctz51.jpg?auto=webp&s=af0feade11a8540875d8ec679d33cfc2ce40810d";
 
     //static variables: makes these globally accessible (at least that's the ELI5 explanation)
     public static ArrayList<MessageEmbed> badgeShopEmbedPages = new ArrayList<>();
@@ -54,6 +55,7 @@ public class BadgeShop extends ListenerAdapter {
 
         //seting up the embed header and color, properties that shared between the pages
         badgeShopEmbed.setTitle(sussyCoin + "SUSSY'S SOUVENIR SHOP™" + sussyCoin);
+        badgeShopEmbed.setThumbnail(thumbnailUrl);
         badgeShopEmbed.setColor(badgeShopEmbedColor);
 
         EmbedBuilder currentEmbed = badgeShopEmbed;

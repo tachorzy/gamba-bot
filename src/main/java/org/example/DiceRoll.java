@@ -3,6 +3,7 @@ package org.example;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 public class DiceRoll {
     public String thumbnailUrl;
@@ -34,33 +35,33 @@ public class DiceRoll {
         switch (compGuess){
             case 1:
                 thumbnailUrl = "https://cdn.discordapp.com/attachments/954548409396785162/982550126092513300/diceroll1.gif";
-                userReq += userReq * .50;
-                bonusVal = "50%";
+                userReq += userReq;
+                bonusVal = "100%";
                 break;
             case 2:
                 thumbnailUrl = "https://cdn.discordapp.com/attachments/954548409396785162/982550124314112050/diceroll2.gif";
-                userReq += userReq * 1;
-                bonusVal = "100%";
+                userReq += userReq * 2;
+                bonusVal = "200%";
                 break;
             case 3:
                 thumbnailUrl = "https://cdn.discordapp.com/attachments/954548409396785162/982550124586745906/diceroll3.gif";
-                userReq += userReq * 1.50;
-                bonusVal = "150%";
-                break;
-            case 4:
-                thumbnailUrl = "https://cdn.discordapp.com/attachments/954548409396785162/982550124880338964/diceroll4.gif";
-                userReq += userReq * 2.25;
-                bonusVal = "225%";
-                break;
-            case 5:
-                thumbnailUrl = "https://cdn.discordapp.com/attachments/954548409396785162/982550125152960542/diceroll5.gif";
                 userReq += userReq * 3;
                 bonusVal = "300%";
                 break;
-            case 6:
-                thumbnailUrl = "https://cdn.discordapp.com/attachments/954548409396785162/982550125534646312/diceroll6.gif";
+            case 4:
+                thumbnailUrl = "https://cdn.discordapp.com/attachments/954548409396785162/982550124880338964/diceroll4.gif";
                 userReq += userReq * 4;
                 bonusVal = "400%";
+                break;
+            case 5:
+                thumbnailUrl = "https://cdn.discordapp.com/attachments/954548409396785162/982550125152960542/diceroll5.gif";
+                userReq += userReq * 5;
+                bonusVal = "500%";
+                break;
+            case 6:
+                thumbnailUrl = "https://cdn.discordapp.com/attachments/954548409396785162/982550125534646312/diceroll6.gif";
+                userReq += userReq * 6;
+                bonusVal = "600%";
                 break;
             default:
                 break;
@@ -102,27 +103,27 @@ public class DiceRoll {
             betMultipler = true;
             return true;
         }
-        else if (compGuess == 3){
-            return true;
-        }
-        return false;
+        else return compGuess == 3;
     }
 
     //validate user input before calculating the winner
     public boolean validInput(String userBetReq, DataBase server, MessageReceivedEvent event){
+        String user =  "<@" +event.getMember().getId() + ">";
+
         try{
             //check users requests if its more than needed then do not allow them to gamble else allow
-            int request = Integer.valueOf(userBetReq);
-            int balance = Integer.valueOf(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
+            int request = Integer.parseInt(userBetReq);
+            int balance = Integer.parseInt(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
 
             //handle if user requests less than 0 throw error
             if (request < diceGameMinAmount  ||  request > diceGameMaxAmount){
-                event.getChannel().sendMessage("Error: please specify a valid amount you would like to bet range " + diceGameMinAmount + "-" + diceGameMaxAmount ).queue();
+                event.getChannel().sendMessage("Error: please specify a valid amount you would like to bet range "
+                        + diceGameMinAmount + "-" + diceGameMaxAmount + " use &help for more info " + user).queue();
                 return false;
             }
             //check if user has enough funds
             else if(request > balance){
-                event.getChannel().sendMessage("Error Insufficient Funds").queue();
+                event.getChannel().sendMessage("Error Insufficient Funds. " + user).queue();
                 return false;
             }
 
@@ -131,10 +132,51 @@ public class DiceRoll {
             userBalance = balance;
 
         }catch(NumberFormatException e){
-            event.getChannel().sendMessage("Error: please specify a valid amount you would like to bet range 500-2000").queue();
+            event.getChannel().sendMessage("Error: please specify a valid amount you would like to bet range "
+                    + diceGameMinAmount + "-" + diceGameMaxAmount + " use &help for more info " + user).queue();
             return false;
         }
 
         return true;
     }
+
+
+    //updates users credits
+    public void updateCredits(DataBase server,MessageReceivedEvent event, int userReq, boolean addCredit){
+        int creditVal = Integer.parseInt(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
+
+        //if addCredit is true add to credits else subtract
+        if(addCredit){ creditVal += userReq; }
+        else{ creditVal -= userReq; }
+
+        server.updateUserCredits(String.valueOf(event.getMember().getIdLong()),String.valueOf(creditVal));
+    }
+
+    public void rollDice(DataBase server,MessageReceivedEvent event,String betAmount){
+        String user =  "<@" +event.getMember().getId() + ">";
+
+        //check valid input
+        if(validInput(betAmount,server,event)){
+            //check if user won
+            if(didUserWin()){
+                event.getChannel().sendMessage(thumbnailUrl).queue();
+                event.getChannel().sendMessage("Congrats you won! " + user).queueAfter(4, TimeUnit.SECONDS);
+                //if the dice was a six roll for a multipler
+                if(betMultipler){
+                    calculateMultiplier();
+                    event.getChannel().sendMessage(thumbnailUrl).queue();
+                    event.getChannel().sendMessage("Bonus: " + bonusVal + "\nTotal: " + userReq).queueAfter(4, TimeUnit.SECONDS);
+                }
+                updateCredits(server,event, userReq, true);
+            }
+            else{
+                event.getChannel().sendMessage(thumbnailUrl).queue();
+                event.getChannel().sendMessage("You Lost !holdL. " + user).queueAfter(4, TimeUnit.SECONDS);
+                updateCredits(server,event,userReq,false);
+            }
+        }
+        //reset object
+        clearGame();
+    }
 }
+

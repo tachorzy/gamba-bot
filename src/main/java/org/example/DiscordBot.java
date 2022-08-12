@@ -63,6 +63,7 @@ public  class DiscordBot {
                 .setActivity(Activity.playing("Diceroll #Gamba Addiction"))
                 .build();
         //NOTE: if you want to create a new class for a new feature implementation, create a new object below
+        //bot.addEventListener(new Commands(new DataBase(DBTOKEN,databaseName,collectionUser,collectionCommands,collectionBanUrl,collectionBadges),prefixVal,new Help(prefixVal)));
         DataBase server = new DataBase(DBTOKEN,databaseName,collectionUser,collectionCommands,collectionBanUrl,collectionBadges);
         bot.addEventListener(new Commands(server,prefixVal,new Help(prefixVal)));
         bot.addEventListener(new Help(prefixVal));
