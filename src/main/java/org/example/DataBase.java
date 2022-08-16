@@ -14,9 +14,10 @@ public class DataBase {
     public MongoCollection <Document> collectionCommands;
     public MongoCollection <Document> collectionBanUrl;
     public MongoCollection <Document> collectionBadges;
+    public MongoCollection <Document> collectionBanner;
 
     //constructor
-    public DataBase(String TOKEN, String dbName, String colName, String colCom ,String colBanUrl,String colBadge) {
+    public DataBase(String TOKEN, String dbName, String colName, String colCom ,String colBanUrl,String colBadge,String colBanner) {
         //connect to the database to then obtain certain collections
         client = MongoClients.create(TOKEN);
         db = client.getDatabase(dbName);
@@ -24,15 +25,21 @@ public class DataBase {
         collectionCommands = db.getCollection(colCom);
         collectionBanUrl = db.getCollection(colBanUrl);
         collectionBadges = db.getCollection(colBadge);
+        collectionBanner = db.getCollection(colBanner);
     }
 
     //Create a new user and insert into the database
     public void insertUser(String userID){
         Document document = new Document();
         document.append("discordid", userID);
-        document.append("credits", "3380");
+        document.append("district", "The Slums");
+        document.append("bannerslot", "");
+        document.append("credits", 3380);
+        document.append("bannerlist", new ArrayList<String>());
         document.append("badges", new ArrayList<String>(4));
         document.append("inventory", new ArrayList<String>(32));
+        document.append("commandlist", new ArrayList<String>());
+
         collectionUser.insertOne(document);
     }
 
@@ -43,7 +50,7 @@ public class DataBase {
     }
 
     //update a users credit when they win or lose credits
-    public void updateUserCredits(String userID, String credits){
+    public void updateUserCredits(String userID, int credits){
         Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
 
         //if the document is found apply update modification the document and send it to the database collection
@@ -55,9 +62,9 @@ public class DataBase {
     }
 
     //obtains the user credits given their userID and then returns users credits
-    public String getUserCredits(String userID){
+    public int getUserCredits(String userID){
         Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
-        return (String) userInfo.get("credits");
+        return (int) userInfo.get("credits");
     }
 
     public ArrayList<String> getUserInventory(String userID){
@@ -77,29 +84,184 @@ public class DataBase {
         collectionCommands.insertOne(documentCom);
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //allows moderators to add a new command into the the database collection  which can then be purchased by users in discord channel
+    public void insertBanner(String bannerName,String url, String type, String cost){
+        Document documentBanner = new Document();
+        documentBanner.append("command",bannerName);
+        documentBanner.append("url",url);
+        documentBanner.append("type",type);
+        documentBanner.append("cost",cost);
+        collectionBanner.insertOne(documentBanner);
+    }
+
+    //add the permission to use a specific command that the user purchased without it they cannot use commands they purchased
+    public void addBannerPermission(String userID, String bannerUrl){
+        Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
+        if(userInfo != null) {
+            Bson updatedValue = new Document("bannerlist", bannerUrl);
+            Bson updatedOperation = new Document("$push", updatedValue);
+            collectionUser.updateOne(userInfo, updatedOperation);
+        }
+    }
+
+    //return true if user is allowed to use command if value of the command is true
+    public String getBanner(String userID, String command){
+        Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
+        if(userInfo == null){ return ""; }
+        ArrayList<String> bannerList = (ArrayList<String>) userInfo.get("bannerlist");
+        ArrayList<String> bannerNames = new ArrayList<>();
+        ArrayList<String> bannerUrl = new ArrayList<>();
+
+        for(String line:bannerList){
+            bannerNames.add(line.substring(0,line.indexOf(" ")));
+            bannerUrl.add(line.substring(line.indexOf(" ") + 1));
+        }
+
+        if (bannerNames.contains(command)){ return bannerUrl.get(bannerNames.indexOf(command)); }
+        return "";
+    }
+
+
+
+    //returns the user's badge slots
+    public String getBannerUrlSlot(String userID){
+        Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
+        if(userInfo == null) {return null;}
+        return (String) userInfo.get("bannerslot");
+    }
+
+    //returns the user's badge slots
+    public void setBannerUrl(String userID,String bannerUrl){
+        Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
+        if(userInfo == null) {return;}
+        Bson updatedValue = new Document("bannerslot",bannerUrl);
+        Bson updatedOperation = new Document("$set", updatedValue);
+        collectionUser.updateOne(userInfo,updatedOperation);
+    }
+
+    //unequips a badge from the user's badge slots
+    public void unequipBanner(String userID) {
+        Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
+        if(userInfo != null) {
+            Bson updatedValue = new Document("bannerslot", "");
+            Bson updatedOperation = new Document("$set", updatedValue); //pull operation removes the badge from list
+            collectionUser.updateOne(userInfo, updatedOperation);
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     //add the permission to use a specific command that the user purchased without it they cannot use commands they purchased
     public void addCommandPermission(String userID, String command){
         Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
 
         //if the document/user is found apply update the document and send it to MongoDB
-        if(userInfo != null){
-            Bson updatedValue = new Document(command,true);
-            Bson updatedOperation = new Document("$set", updatedValue);       //set allows the document to be updated
-            collectionUser.updateOne(userInfo,updatedOperation);
+//        if(userInfo != null){
+//            Bson updatedValue = new Document(command,true);
+//            Bson updatedOperation = new Document("$set", updatedValue);       //set allows the document to be updated
+//            collectionUser.updateOne(userInfo,updatedOperation);
+//        }
+
+        //UNCOMMENT CODE OFFICIAL RELEASE DELETE CODE ABOVE
+        if(userInfo != null) {
+            Bson updatedValue = new Document("commandlist", command);
+            Bson updatedOperation = new Document("$push", updatedValue);
+            collectionUser.updateOne(userInfo, updatedOperation);
         }
     }
 
     //return true if user is allowed to use command if value of the command is true
     public boolean getCommandPermission(String userID,String command){
+//        Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
+//        if(userInfo.get(command) == null){ return false; }
+//        return (boolean)userInfo.get(command);
+
         Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
-        if(userInfo.get(command) == null){ return false; }
-        return (boolean)userInfo.get(command);
+
+
+//      UNCOMMENT CODE OFFICIAL RELEASE
+        if(userInfo == null){
+            System.out.println("null");
+            return false; }
+
+        ArrayList<String> userCommandList = (ArrayList<String>) userInfo.get("commandlist");
+
+        if (userCommandList.contains(command)){
+            System.out.println("Command found");
+            return true;
+        }
+        System.out.println("command not found");
+        return false;
+    }
+
+    public ArrayList<String> getUserInventoryCommand(String userID){
+        Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
+        if(userInfo == null) {return null;}
+        return (ArrayList<String>) userInfo.get("commandlist");
     }
 
     //returns a hashmap for all commands in the database to store locally for use
     public HashMap<String,List<String>> obtainCommands(){
         HashMap<String, List<String>> commandTable = new HashMap<>();
         FindIterable<Document> iterDoc = collectionCommands.find();
+
+        //iterate using the cursor and store into hashmap
+        for (Document currentDoc : iterDoc) {
+            commandTable.put(
+                    //key
+                    (String) currentDoc.get("command"),
+                    //value
+                    Arrays.asList(
+                            (String) currentDoc.get("url"),
+                            (String) currentDoc.get("cost"),
+                            (String) currentDoc.get("type")
+                    ));
+        }
+        return commandTable;
+    }
+
+    //returns a hashmap for all commands in the database to store locally for use
+    public HashMap<String,List<String>> obtainBanners(){
+        HashMap<String, List<String>> commandTable = new HashMap<>();
+        FindIterable<Document> iterDoc = collectionBanner.find();
 
         //iterate using the cursor and store into hashmap
         for (Document currentDoc : iterDoc) {

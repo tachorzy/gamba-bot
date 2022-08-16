@@ -40,13 +40,13 @@ public class Fishing {
 
     //updates users credits
     public void updateCredits(DataBase server, MessageReceivedEvent event, int userReq, boolean addCredit){
-        int creditVal = Integer.parseInt(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
+        int creditVal = server.getUserCredits(String.valueOf(event.getMember().getIdLong()));
 
         //if addCredit is true add to credits else subtract
         if(addCredit){ creditVal += userReq; }
         else{ creditVal -= userReq; }
 
-        server.updateUserCredits(String.valueOf(event.getMember().getIdLong()),String.valueOf(creditVal));
+        server.updateUserCredits(String.valueOf(event.getMember().getIdLong()),creditVal);
     }
 
     //obtain the specific emoji the user "fished"
@@ -77,7 +77,7 @@ public class Fishing {
         try {
             //check users requests if its more than needed then do not allow them to gamble else allow
             int request = 20;
-            int balance = Integer.parseInt(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
+            int balance = server.getUserCredits(String.valueOf(event.getMember().getIdLong()));
 
             //check if user has enough funds
             if (request > balance) {

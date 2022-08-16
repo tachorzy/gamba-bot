@@ -29,11 +29,15 @@ public class Commands extends ListenerAdapter {
     public Sample sampleComObject = new Sample();
     public Gift giftObject = new Gift();
     public Inventory inventoryObject = new Inventory();
+    public InventoryCommand inventoryCommandObject = new InventoryCommand();
+    public AddBanner addBannerObject = new AddBanner();
+    public BannerShop bannerShopObject = new BannerShop();
     public Help helpObject;
 
     //used to store commands and badges locally
     public HashMap<String, List<String>> commandList;
     public HashMap<String, List<String>> badgeList;
+    public HashMap<String, List<String>> bannerList;
 
     //emotes and messages
     public String errorEmote = "<a:exclamationmark:1000459825722957905>";
@@ -55,6 +59,7 @@ public class Commands extends ListenerAdapter {
         helpObject = helpObj;
         commandList = server.obtainCommands();
         badgeList = server.obtainBadges();
+        bannerList = server.obtainBanners();
     }
 
     //checks if user exists and checks if their command meets the right length
@@ -86,13 +91,13 @@ public class Commands extends ListenerAdapter {
 
     //updates users credits
     public void updateCredits(MessageReceivedEvent event, int userReq, boolean addCredit){
-        int creditVal = Integer.parseInt(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
+        int creditVal = server.getUserCredits(String.valueOf(event.getMember().getIdLong()));
 
         //if addCredit is true add to credits else subtract
         if(addCredit){ creditVal += userReq; }
         else{ creditVal -= userReq; }
 
-        server.updateUserCredits(String.valueOf(event.getMember().getIdLong()),String.valueOf(creditVal));
+        server.updateUserCredits(String.valueOf(event.getMember().getIdLong()),creditVal);
     }
 
     //check if command is in the right channel if not then throw error message and return false
@@ -142,7 +147,7 @@ public class Commands extends ListenerAdapter {
         String[] args = event.getMessage().getContentRaw().split(" ");
 
         //when the user messages add 5 points to their balance each time
-        if(server.findUser(String.valueOf(event.getMember().getIdLong()))){ updateCredits(event,15,true);}
+        //if(server.findUser(String.valueOf(event.getMember().getIdLong()))){ updateCredits(event,15,true);}
 
         //checks if user used a ban url
         if(isMessageUsingBanUrl(event,args)){return;}
@@ -192,11 +197,21 @@ public class Commands extends ListenerAdapter {
                     if(!checkUserRequestValid(event,args.length,5)){break;}
                     if(addComObject.addNewCommand(server,event,args[1],args[2],args[3],args[4])){commandList = server.obtainCommands();}
                     break;
+                case "addbanner":
+                    if(!checkUserRequestValid(event,args.length,5)){break;}
+                    if(addBannerObject.addNewBanner(server,event,args[1],args[2],args[3],args[4])){bannerList = server.obtainBanners();}
+                    break;
                 case "resetshop":
                     if(resetShopObject.isUserMod(server,event)){
                         commandList = server.obtainCommands();
                         badgeList = server.obtainBadges();
+                        bannerList = server.obtainBanners();
                     }
+                    break;
+                case "inventorycommand":
+                    if(!isChannelValid(event,"lounge")){break;}
+                    if(!checkUserRequestValid(event,args.length,1)){break;}
+                    inventoryCommandObject.printInventoryCommandEmbed(event,server,String.valueOf(event.getMember().getIdLong()));
                     break;
                 case "sample":
                     if(!isChannelValid(event,"lounge")){break;}
@@ -207,15 +222,19 @@ public class Commands extends ListenerAdapter {
                     if(!isChannelValid(event,"lounge")){break;}
                     badgeShopObject.printBadgeShopEmbed(event,badgeList);
                     break;
+                case "bannershop":
+                    if(!isChannelValid(event,"lounge")){break;}
+                    bannerShopObject.printShopEmbed(event,bannerList);
+                    break;
                 case "buy":
                     //handle buy multiple commands
                     if(!isChannelValid(event,"lounge")){break;}
                     if(!checkUserRequestValid(event,args.length,3)){break;}
                     String searchQuery = args[2];
-                    int balance = Integer.parseInt(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
+                    int balance = server.getUserCredits(String.valueOf(event.getMember().getIdLong()));
 
                     //if not either command throw error
-                    if(!args[1].equals("command") && !args[1].equals("badge")) {
+                    if(!args[1].equals("command") && !args[1].equals("badge") && !args[1].equals("banner")) {
                         event.getChannel().sendMessage(errorEmote + "Invalid again please use &help to see command usage. " + userID).queue();
                         break;
                     }
@@ -231,6 +250,7 @@ public class Commands extends ListenerAdapter {
                         int request =  Integer.parseInt(commandList.get(searchQuery).get(1));
 
                         if (request > balance) { event.getChannel().sendMessage(errorEmote + "Error Insufficient Funds " + userID).queue(); break; }
+
                         else {
                             updateCredits(event,request,false);
                             server.addCommandPermission(String.valueOf(event.getMember().getIdLong()),searchQuery);
@@ -271,6 +291,41 @@ public class Commands extends ListenerAdapter {
                         server.equipBadge(event.getMember().getId(), requestedBadge);
                         event.getChannel().sendMessage("Your new badge has been added to your credit card, enjoy!!! " + pepeDS + " " + userID).queue();
                     }
+                    else if(args[1].equals("banner")) {
+                        System.out.println(bannerList);
+                        System.out.println("banners");
+                        if (!bannerList.containsKey(searchQuery)) {event.getChannel().sendMessage(errorEmote + invalidPurchaseMessage).queue(); break;}
+
+                        if(!server.getBanner(String.valueOf(event.getMember().getIdLong()),args[2]).isEmpty()){
+                            event.getChannel().sendMessage("User has already bought banner " + userID).queue();
+                            break;
+                        }
+
+                        int request =  Integer.parseInt(bannerList.get(searchQuery).get(1));
+                        if (request > balance) { event.getChannel().sendMessage(errorEmote + "Error Insufficient Funds " + userID).queue(); break; }
+                        else {
+                            updateCredits(event,request,false);
+                            server.addBannerPermission(String.valueOf(event.getMember().getIdLong()),args[2] + " " +bannerList.get(searchQuery).get(0));
+                            event.getChannel().sendMessage("Purchase sucessfully completed! " + pepeDS + " " + userID).queue();
+                        }
+
+                        //if empty for banner slot
+                        if(server.getBannerUrlSlot(String.valueOf(event.getMember().getIdLong())).isEmpty()) {
+                            server.setBannerUrl(String.valueOf(event.getMember().getIdLong()),bannerList.get(searchQuery).get(0));
+                        }
+                    }
+                    break;
+                case "equipbanner":
+                    //make case if already has a banner
+                    String bannerUrlReq = server.getBanner(String.valueOf(event.getMember().getIdLong()),args[1]);
+                    if(!bannerUrlReq.isEmpty()){
+                        server.setBannerUrl(String.valueOf(event.getMember().getIdLong()),bannerUrlReq);
+                        event.getChannel().sendMessage("equiped banner completed! " + pepeDS + " " + userID).queue();
+                    }
+                    break;
+                case "unequipbanner":
+                    server.unequipBanner(String.valueOf(event.getMember().getIdLong()));
+                    event.getChannel().sendMessage("Unequip banner completed! " + pepeDS + " " + userID).queue();
                     break;
                 case "replacebadge":
                     if(!isChannelValid(event,"lounge")){break;}
@@ -318,7 +373,6 @@ public class Commands extends ListenerAdapter {
                     if(!isChannelValid(event,"fish")){break;}
                     fishingObject.beginFishing(server,event);
                     break;
-                //Coinflip game  example of how the general structure can be more details of code in CoinFlip.java
                 case "coinflip":
                     if(!isChannelValid(event,"casino")){break;}
                     if(!checkUserRequestValid(event,args.length,3)){break;}
