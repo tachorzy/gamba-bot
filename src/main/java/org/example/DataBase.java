@@ -58,8 +58,8 @@ public class DataBase {
                     //key
                     (String)currentDoc.get("discordid"),
                     //value
-                    (String)currentDoc.get("credits")
-                    //currentDoc.get("credits").toString() //uncomment after changing all credits in the db to ints
+                    //(String)currentDoc.get("credits")
+                    currentDoc.get("credits").toString() //uncomment after changing all credits in the db to ints
             );
         }
         return rosterTable;
@@ -80,16 +80,37 @@ public class DataBase {
     //obtains the user credits given their userID and then returns users credits
     public String getUserCredits(String userID){
         Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
-        return (String) userInfo.get("credits");
-        //return userInfo.get("credits").toString(); //uncomment after changing all credits in the db to ints
+        //return (String) userInfo.get("credits");
+        return userInfo.get("credits").toString(); //uncomment after changing all credits in the db to ints
     }
 
-    public ArrayList<String> getUserInventory(String userID){
+//    public ArrayList<String> getUserInventory(String userID){
+//        Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
+//        if(userInfo == null) {return null;}
+//        return (ArrayList<String>) userInfo.get("inventory");
+//    }
+    //renamed to getUserBadgeInventory since we are distributing items across "different" inventories though I think we should soon make this
+    //different categories of one inventory later on.
+    public HashMap<String,String> getUserBadgeInventory(String userID){
         Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
         if(userInfo == null) {return null;}
-        return (ArrayList<String>) userInfo.get("inventory");
-    }
+        ArrayList<String> userInventoryList = (ArrayList<String>) userInfo.get("inventory");
+        HashMap<String,String> userInventory = new HashMap<>();
+            for(String item : userInventoryList){
+                String lines[] = item.split("\\r?\\n");
+                String itemName = lines[0];
+                String itemValue = lines[1];
+                userInventory.put(
+                        //key
+                        (String) itemName,
+                        //value
+                        (String) itemValue
+                );
+            }
 
+
+        return userInventory;
+    }
 
     //allows moderators to add a new command into the the database collection  which can then be purchased by users in discord channel
     public void insertCommand(String commandName,String url, String type, String cost){
@@ -162,12 +183,12 @@ public class DataBase {
     public boolean isUserMod(String userID){
         Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
         if(userInfo.get("moderator") == null){ return false; }
-        return (boolean)userInfo.get("moderator");
+        return (boolean) userInfo.get("moderator");
     }
 
     //adds a badge document into the database under the badge collection
     //public void insertNewBadge( String badgeName, String id, String type, int cost, String tag){
-    public void insertNewBadge( String badgeName, String id, String type, String cost, String tag){ //uncomment above after converting db credits to int
+    public void insertNewBadge( String badgeName, String id, String type, int cost, String tag){ //uncomment above after converting db credits to int
         Document documentCom = new Document();
             documentCom.append("id",id);
             documentCom.append("badgeName", badgeName);
@@ -204,6 +225,7 @@ public class DataBase {
         //iterate using the cursor and store into hashmap
         while (iteratorCursor.hasNext()) {
             Document currentDoc = (Document)iteratorCursor.next();
+            System.out.println("ADDING KEY " + currentDoc.get("badgeName"));
             badgeTable.put(
                     //key
                     (String)currentDoc.get("badgeName"),
@@ -234,7 +256,7 @@ public class DataBase {
         Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
         if(userInfo == null) { return; }
         if(isUserMod(userID)){
-            List<String> badgeList = new ArrayList<>(5);
+            ArrayList<String> badgeList = new ArrayList<>(5);
             Bson updatedValue = new Document("badges", badgeList);             // set empty array as the empty badge slots in database
             Bson updatedOperation = new Document("$set", updatedValue);       //set allows the document to be updated
             collectionUser.updateOne(userInfo,updatedOperation);

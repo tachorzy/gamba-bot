@@ -8,7 +8,7 @@ public class AddBadge {
 
     //public boolean addNewBadge(MessageReceivedEvent event, DataBase server, String badgeName, String badgeID, String badgeType, int badgeCost, String[] badgeTagArray){
     //UNCOMMENT ABOVE LATER after converting db to int
-    public boolean addNewBadge(MessageReceivedEvent event, DataBase server, String badgeName, String badgeID, String badgeType, String badgeCost, String[] badgeTagArray){
+    public boolean addNewBadge(MessageReceivedEvent event, DataBase server, String badgeName, String badgeID, String badgeType, int badgeCost, String[] badgeTagArray){
             String user = "<@" + event.getMember().getId() + ">";
         if(server.isUserMod(String.valueOf(event.getMember().getIdLong()))){
             StringBuilder badgeTag = new StringBuilder();

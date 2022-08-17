@@ -20,6 +20,7 @@ public class Commands extends ListenerAdapter {
     public SignUp signupObject = new SignUp();
     public CreditCard creditCardObject = new CreditCard();
     public Shop shopObject = new Shop();
+    public Buy buyObject = new Buy();
     public Leaderboard leaderboardObject = new Leaderboard();
     public BadgeBuilder badgeBuilderObject = new BadgeBuilder();
     public AddBadge addBadgeObject = new AddBadge();
@@ -30,6 +31,7 @@ public class Commands extends ListenerAdapter {
     public ResetShop resetShopObject = new ResetShop();
     public Sample sampleComObject = new Sample();
     public Gift giftObject = new Gift();
+    public Bounty bountyObject = new Bounty();
     public Help helpObject;
     public Inventory inventoryObject = new Inventory();
     public BadgeShop badgeShopObject = new BadgeShop();
@@ -49,7 +51,7 @@ public class Commands extends ListenerAdapter {
     public String loungeChannelID = "1001755724961038396";
     public String jackpotWheelChannelID = "1004589024998080595";
     public String fishingChannelID = "1002048071661801563";
-
+    public String botChannelID = "954548409396785162";
     //Constructor
     public Commands(DataBase db, Character prefixVal ,Help helpObj){
         server = db;
@@ -95,6 +97,10 @@ public class Commands extends ListenerAdapter {
         String errorMessage;
         String channelID;
 
+        String eventChannelID = event.getChannel().getId();
+        if(eventChannelID.equals(botChannelID))
+            return true;
+
         switch (commandType){
             case "casino":
                 channelID = casinoChannelID;
@@ -117,7 +123,7 @@ public class Commands extends ListenerAdapter {
                 errorMessage = "Error 404 invalid channel contact mods and do no panic!";
                 break;
         }
-        if(!event.getChannel().getId().equals(channelID)) {
+        if(!eventChannelID.equals(channelID)) {
             event.getChannel().deleteMessageById(event.getChannel().getLatestMessageIdLong()).queue();
             event.getChannel().sendMessage(errorMessage + " " + userID).queue();
             return false;
@@ -147,7 +153,7 @@ public class Commands extends ListenerAdapter {
         String[] args = event.getMessage().getContentRaw().split(" ");
 
         //when the user messages add 5 points to their balance each time
-        if(server.findUser(String.valueOf(event.getMember().getIdLong()))){ updateCredits(event,15,true);}
+        //if(server.findUser(String.valueOf(event.getMember().getIdLong()))){ updateCredits(event,15,true);}
 
         //checks if user used a ban url
         if(isMessageUsingBanUrl(event,args)){return;}
@@ -218,76 +224,29 @@ public class Commands extends ListenerAdapter {
                     break;
                 case "badgeshop":
                     if(!isChannelValid(event,"lounge")){break;}
-                    badgeShopObject.printBadgeShopEmbed(event,badgeList);
+                    badgeShopObject.printBadgeShopEmbed(event,server,badgeList);
                     break;
                 case "buy":
+                    System.out.println("HELLO: " + args[1] + args[2]);
                     //handle buy multiple commands
                     if(!isChannelValid(event,"lounge")){break;}
 
-
-                    if(!checkUserRequestValid(event,args.length,3)){break;}
-                    String searchQuery = args[2];
+                    //if(!checkUserRequestValid(event,args.length,3)){break;}
 
                     int balance = Integer.parseInt(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
 
-                    //if not either command throw error
-                    if(!args[1].equals("command") && !args[1].equals("badge")) {
-                        event.getChannel().sendMessage(errorEmote + "Invalid again please use &help to see command usage. " + userID).queue();
-                        break;
+                    if(args[1].equals("command")){
+                        System.out.println("HELLO COMM: " + args[2]);
+                        buyObject.buyCommand(event,server,commandList,args[2],balance);
                     }
-
-                    if(args[1].equals("command")) {
-                        if (!commandList.containsKey(searchQuery)) {event.getChannel().sendMessage(errorEmote + invalidPurchaseMessage).queue(); break;}
-
-                        if(server.getCommandPermission(String.valueOf(event.getMember().getIdLong()),args[2])){
-                            event.getChannel().sendMessage("User has already bought command " + userID).queue();
-                            break;
-                        }
-
-                        int request =  Integer.valueOf(commandList.get(searchQuery).get(3));
-
-                        if (request > balance) { event.getChannel().sendMessage(errorEmote + "Error Insufficient Funds " + userID).queue(); break; }
-                        else {
-                            updateCredits(event,request,false);
-                            server.addCommandPermission(String.valueOf(event.getMember().getIdLong()),searchQuery);
-                            event.getChannel().sendMessage("Purchase sucessfully completed! " + pepeDS + " " + userID).queue();
-                        }
+                    else if(args[1].equals("badge")){
+                        System.out.println("HELLO: " + args[2]);
+                        buyObject.buyBadge(event,server,badgeList,args[2],balance);
                     }
-                    else if(args[1].equals("badge")) {
-                        if(!badgeList.containsKey(searchQuery)){ event.getChannel().sendMessage(errorEmote + invalidPurchaseMessage).queue(); break; }
-
-                        int request =  Integer.parseInt(badgeList.get(searchQuery).get(4));
-                        if (request > balance) { event.getChannel().sendMessage(errorEmote + "Error Insufficient Funds " + userID).queue(); break; }
-
-                        List<String> badgeDetails = badgeList.get(searchQuery);
-                        String requestedBadge = badgeBuilderObject.buildBadge(badgeDetails, searchQuery);
-                        ArrayList<String> userBadges = server.getUserSlotBadges(event.getMember().getId());
-                        ArrayList<String> userInventory = server.getUserInventory(event.getMember().getId());
-
-                        if(userBadges.contains(requestedBadge) || userInventory.contains(searchQuery)) {
-                            event.getChannel().sendMessage(errorEmote + "You already have this badge either displayed or in inventory." + userID).queue();
-                            break;
-                        }
-
-                        //transaction is done, and adds badge to user inventory before equipping the badge
-                        updateCredits(event,Integer.parseInt(badgeList.get(searchQuery).get(4)),false);
-                        server.addBadgeToInventory(String.valueOf(event.getMember().getIdLong()),searchQuery, requestedBadge);
-                        event.getChannel().sendMessage("Transaction complete... your new badge has been added to your inventory. " + boxEmote).queue();
-
-                        if(userBadges.size() >= 4){ //checking if you have an available badge slot.
-                            String userBadgeSlots = "《 " + userBadges.get(0) + " | " + userBadges.get(1) + " | " + userBadges.get(2) + " | "+ userBadges.get(3) + " 》";
-                            msgEmbed.setColor(Color.WHITE);
-                            msgEmbed.setTitle(errorEmote + "You currently have the maximum amount of badges that can be equipped at a time.");
-                            msgEmbed.setDescription(replaceBadgeMessage);
-                            msgEmbed.addField("Your Current Badge Slots:",userBadgeSlots, false);
-                            event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
-                            msgEmbed.clear();
-                            break;
-                        }
-                        server.equipBadge(event.getMember().getId(), requestedBadge);
-                        event.getChannel().sendMessage("Your new badge has been added to your credit card, enjoy!!! " + pepeDS + " " + userID).queue();
-                    }
+//                    else if(args[1].equals("banner"))
+//                        //buyObject.buyBanner(event,server,bannerList,args[2],balance);
                     break;
+
                 case "replacebadge":
                     if(!isChannelValid(event,"lounge")){break;}
                     creditCardObject.replaceBadge(event, badgeList, args[1], args[2], server);
@@ -307,7 +266,7 @@ public class Commands extends ListenerAdapter {
                 case "addbadge":
                     if(!isChannelValid(event,"lounge")){break;}
                     //if(addBadgeObject.addNewBadge(event,server, args[1], args[2], args[3], Integer.valueOf(args[4]), Arrays.copyOfRange(args, 5, args.length))); //Uncomment when we change db credits from strings to int
-                    if(addBadgeObject.addNewBadge(event,server, args[1], args[2], args[3], args[4], Arrays.copyOfRange(args, 5, args.length)));
+                    if(addBadgeObject.addNewBadge(event,server, args[1], args[2], args[3], Integer.valueOf(args[4]), Arrays.copyOfRange(args, 5, args.length)));
                     break;
                 case "inventory":
                     if(!isChannelValid(event,"lounge")){break;}
@@ -330,6 +289,9 @@ public class Commands extends ListenerAdapter {
                         event.getChannel().deleteMessageById(event.getChannel().getLatestMessageIdLong()).queue();
                         event.getChannel().sendMessage(userID + " gifted to " + args[2] + "\n AMOUNT: " + args[1] +  " <a:SussyCoin:1004568859648466974>").queue();
                     }
+                    break;
+                case "bounties":
+                    bountyObject.printBountyEmbed(event,server);
                     break;
                 case "fish":
                     if(!isChannelValid(event,"fish")){break;}

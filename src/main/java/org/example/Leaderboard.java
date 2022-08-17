@@ -14,7 +14,7 @@ public class Leaderboard {
     public Color rankEmbedCOlor = Color.MAGENTA;
     public String tradeMark = "© 2022 Sussy Inc. All Rights Reserved.";
     public String sussyCoin = "<a:SussyCoin:1004568859648466974>";
-    public String botLogoThumbnail = "https://i.imgur.com/6mdUhwI.png";
+    public String botLogoThumbnail = "https://i.imgur.com/gX3XrZw.png";
 
 
     public void createLeaderBoardEmbed(MessageReceivedEvent event, DataBase server){

@@ -27,13 +27,35 @@ public class BadgeShop extends ListenerAdapter {
     public String tradeMark = "© 2022 Sussy Inc. All Rights Reserved.";
     public String thumbnailUrl = "https://preview.redd.it/tf77kzvpctz51.jpg?auto=webp&s=af0feade11a8540875d8ec679d33cfc2ce40810d";
 
+    
     //static variables: makes these globally accessible (at least that's the ELI5 explanation)
-    public static ArrayList<MessageEmbed> badgeShopEmbedPages = new ArrayList<>();
-    public static int pageNumber = 0;
+    //also it's a linkedlist (doubly linked) because we'll be iterating forwards and backwards.
+    public static LinkedList<MessageEmbed> badgeShopEmbedPages = new LinkedList<>();
+    public static ListIterator<MessageEmbed> iter;
 
+    public static DataBase server;
     int numberOfCustomEmotes = 3; //THIS IS HARDCODED COME BACK AND FIX. Imma make a method to calculate this later.
 
     //initializing action rows: each action row has a number of button objects.
+    ActionRow defActionRow = ActionRow.of(
+            Button.primary("page1", "1"),
+            Button.secondary("page2", "2"),
+            Button.secondary("page3", "3"),
+            Button.danger("exit", "Exit ✖")
+    );
+    ActionRow secondActionRow = ActionRow.of(
+            Button.secondary("page1", "1"),
+            Button.primary("page2", "2"),
+            Button.secondary("page3", "3"),
+            Button.danger("exit", "Exit ✖")
+    );
+    ActionRow thirdActionRow = ActionRow.of(
+            Button.secondary("page1", "1"),
+            Button.secondary("page2", "2"),
+            Button.primary("page3", "3"),
+            Button.danger("exit", "Exit ✖")
+    );
+    /*
     ActionRow defActionRow = ActionRow.of(
             Button.secondary("prev-page", "❰ Previous Page"),
             Button.secondary("next-page", "Next Page ❱"),
@@ -47,11 +69,13 @@ public class BadgeShop extends ListenerAdapter {
             Button.secondary("prev-page", "❰ Previous Page"),
             Button.danger("exit", "Exit ✖")
     );
-
+    */
     //creates the badgeshop embed pages and adds them to our badgeShopEmbedPages ArrayList
-    public void createBadgeShopEmbeds(LinkedHashMap<String, List<String>> badgeList, MessageReceivedEvent event) {
+    public MessageEmbed createBadgeShopEmbeds(LinkedHashMap<String, List<String>> badgeList, DataBase db) {
         if(!badgeShopEmbedPages.isEmpty())
-            return;
+            return badgeShopEmbedPages.get(0);
+
+        server = db;
 
         //seting up the embed header and color, properties that shared between the pages
         badgeShopEmbed.setTitle(sussyCoin + "SUSSY'S SOUVENIR SHOP™" + sussyCoin);
@@ -63,13 +87,14 @@ public class BadgeShop extends ListenerAdapter {
         int i = 0;
         //calculating the number of pages (the size of our arraylist)
         int amountOfBadgesPerEmbed = 15; //We'll have 15 badges per embed
-        int numberOfPages = (badgeList.size()-numberOfCustomEmotes)/15;
 
         badgeShopEmbedPages.clear(); //removes all elements from the old embed
         Iterator badgeIterator = badgeList.entrySet().iterator();
 
         while(badgeIterator.hasNext()){
+            System.out.println(i);
             if(i == amountOfBadgesPerEmbed) { //when an embed is full, add it to the arraylist and make a new embed.
+                System.out.println("FILLED PAGE WITH " + amountOfBadgesPerEmbed + " BADGES");
                 i = 0;
                 currentEmbed.setTimestamp(Instant.now());
                 badgeShopEmbedPages.add(currentEmbed.build());
@@ -79,88 +104,196 @@ public class BadgeShop extends ListenerAdapter {
             }
             Map.Entry element = (Map.Entry)badgeIterator.next();
             List<String> elementVal = (List<String>)element.getValue();
+
             String elementKey = elementVal.get(1);
             String elementPrice = elementVal.get(4);
             //We list everything BUT custom items -- only items that are available for purchase -- I set all custom emotes to have -1 as their cost in the db
             if(!elementPrice.equals("-1")){
                 currentEmbed.addField((String) elementKey + "\n" + badge.buildBadge(elementVal,elementKey), stackCashEmote + "Price: $"+ elementPrice,true);
-                currentEmbed.setFooter(tradeMark + "\t\t\t\t" + pageNumber + "/" + numberOfPages);
                 i++;
             }
         }
-        //if(!badgeShopEmbedPages.isEmpty()) //commented out for now might need to reuse something similar later?
-            //badgeShopEmbedPages.add(currentEmbed.build());
+        if(!badgeShopEmbedPages.isEmpty()) //adds the remaining embed
+            badgeShopEmbedPages.add(currentEmbed.build());
+        return badgeShopEmbedPages.getFirst();
     }
 
     //prints the badgeShopEmbeds, updates the pageNumber from the number listed in the footer earlier. (this part is unfinished due to some changes I made earlier)
-    public void printBadgeShopEmbed(MessageReceivedEvent event,LinkedHashMap<String, List<String>> badgeList){
-        createBadgeShopEmbeds(badgeList, event);
-        event.getChannel().sendMessageEmbeds(badgeShopEmbedPages.get(0))
-                .setActionRows(firstPageActionRow)
+    public void printBadgeShopEmbed(MessageReceivedEvent event, DataBase db,LinkedHashMap<String,List<String>> badgeList){
+        MessageEmbed firstPage = createBadgeShopEmbeds(badgeList, db);
+        System.out.println("ARRAYLIST SIZE: " + badgeShopEmbedPages.size());
+        iter = badgeShopEmbedPages.listIterator();
+        event.getChannel().sendMessageEmbeds(firstPage)
+                .setActionRows(defActionRow)
                 .queue();
-        String footerText = event.getMessage().getEmbeds().get(0).getFooter().getText();
-        pageNumber = Character.getNumericValue(footerText.charAt(42));
-        badgeShopEmbed.clear();
     }
 
     //Whenever a click occurs we need to print a specific page after the pageIndex (local version of pageNumber) has been incremented/decremented
-    public void printBadgeShopEmbedPage(ButtonInteractionEvent event, int pageIndex){
+    public void printBadgeShopEmbedPage(ButtonInteractionEvent event, int index){
+        if(badgeShopEmbedPages.isEmpty()) return;
+
+        System.out.println("\nARRAYLIST SIZE: " + badgeShopEmbedPages.size());
+        System.out.println("EMBED IS: " + badgeShopEmbedPages.get(index));
         ActionRow actionRow = defActionRow;
-        ArrayList<MessageEmbed> localPages = badgeShopEmbedPages;
-
-        System.out.println("PAGE INDEX: " + pageIndex);
-        System.out.println("PAGE NUMBER: " + pageNumber);
-
-        System.out.println("ARRAYLIST SIZE: " + localPages.size());
-
-        if(pageIndex < 0) {
-            pageNumber = 0;
-            return;
+        switch(index){
+            case 1:
+                actionRow = secondActionRow;
+                break;
+            case 2:
+                actionRow = thirdActionRow;
+                break;
         }
-        else if(pageIndex > localPages.size()){
-            System.out.println("pageIndex EXCEED PAGES SIZE");
-            pageNumber = 0;
-            return;
-        }
+//        if(badgeShopEmbedPages.get(index).equals(badgeShopEmbedPages.getFirst())){
+//            System.out.println("FIRST EMBED");
+//            actionRow = firstPageActionRow;
+//        }
+//        else if (badgeShopEmbedPages.get(index).equals(badgeShopEmbedPages.getLast())){
+//            System.out.println("LAST EMBED");
+//            actionRow = lastPageActionRow;
+//        }
 
-        if(localPages.isEmpty() || localPages.get(pageIndex).isEmpty()){
-            System.out.println("EMBED ARRAY IS EMPTY or EMBED IS EMPTY");
-            return;
-        }
-
-        MessageEmbed currentEmbed = localPages.get(pageIndex);
-
-        if(pageIndex == 0)
-            actionRow = firstPageActionRow;
-        else if (pageIndex == localPages.size()-1)
-            actionRow = lastPageActionRow;
-
-        event.getMessage().editMessageEmbeds(currentEmbed)
+        event.getMessage().editMessageEmbeds(badgeShopEmbedPages.get(index))
                 .setActionRows(actionRow)
                 .queue();
+        System.out.println("PRINTING COMPLETE\n");
     }
 
     //handles button interaction and increments/decrements the pageNumber accordingly
     @Override
     public void onButtonInteraction(@NotNull ButtonInteractionEvent event){
         System.out.println("\nCLICK\n");
+        System.out.println("ARRAYLIST SIZE: " + badgeShopEmbedPages.size());
+        //String userID = event.getMember().getId();
+        //int userPageIdx = server.getUserPageIdx(userID);
+        if(iter == null)
+            iter = badgeShopEmbedPages.listIterator(0);
+        System.out.println("ITER IS: " + iter);
 
-        if(event.getComponentId().equals("prev-page")){
-            pageNumber -= 1;
-            System.out.println("PREV PAGE");
-            printBadgeShopEmbedPage(event, pageNumber);
-            event.deferEdit();
-        }
-        else if(event.getComponentId().equals("next-page")){
-            System.out.println("NEXT PAGE");
-            pageNumber += 1;
-            printBadgeShopEmbedPage(event, pageNumber);
-            event.deferEdit();
-        }
-        else if(event.getComponentId().equals("exit")){
-            pageNumber = 0;
-            event.getMessage().delete().queue();
-            event.deferReply();
+        switch(event.getComponentId()){
+            case "page1":
+                printBadgeShopEmbedPage(event, 0);
+                event.deferEdit().queue();
+                break;
+            case "page2":
+                printBadgeShopEmbedPage(event, 1);
+                event.deferEdit().queue();
+                break;
+            case "page3":
+                printBadgeShopEmbedPage(event, 2);
+                event.deferEdit().queue();
+                break;
+            default:
+                break;
         }
     }
+
 }
+        /*
+        switch(event.getComponentId()){
+            case "prev-page":
+                if(!iter.hasNext() && iter.hasPrevious()){
+                    System.out.println("PREV PAGE -- FIRST PAGE");
+                    printBadgeShopEmbedPage(event, iter.previousIndex());
+                    event.deferEdit().queue();
+                }
+                else if (iter.hasNext() && !iter.hasPrevious()){ //bypassing button click interference from another badgeshop embed.
+                    iter = badgeShopEmbedPages.listIterator(badgeShopEmbedPages.size());
+                    System.out.println("PREV PAGE -- LAST PAGE");
+                    printBadgeShopEmbedPage(event, iter.previousIndex());
+                    event.deferEdit().queue();
+                }
+                else {
+                    System.out.println("PREV PAGE -- MIDDLE PAGE");
+                    printBadgeShopEmbedPage(event, iter.previousIndex());
+                    event.deferEdit().queue();
+                }
+                break;
+            case "next-page":
+                if(iter.hasNext() && !iter.hasPrevious()){
+                    System.out.println("NEXT PAGE -- FIRST PAGE");
+                    printBadgeShopEmbedPage(event, iter.nextIndex());
+                    event.deferEdit().queue();
+                }
+                else if(!iter.hasNext() && iter.hasPrevious()){
+                    iter = badgeShopEmbedPages.listIterator();
+                    System.out.println("NEXT PAGE -- LAST PAGE");
+                    printBadgeShopEmbedPage(event, iter.nextIndex());
+                    event.deferEdit().queue();
+                }
+                else{
+                    System.out.println("NEXT PAGE -- MIDDLE PAGE");
+                    printBadgeShopEmbedPage(event, iter.nextIndex());
+                    event.deferEdit().queue();
+                }
+                break;
+            case "exit":
+                event.getMessage().delete().queue();
+                event.deferReply().queue();
+                break;
+            default:
+                break;
+        }
+        */
+
+
+
+
+//        if(event.getComponentId().equals("prev-page")){
+//            if(iter.hasPrevious()){
+//                System.out.println("PREV PAGE");
+//                printBadgeShopEmbedPage(event, iter.previous());
+//                event.deferEdit();
+//            }
+//            else{
+//                iter = badgeShopEmbedPages.listIterator(badgeShopEmbedPages.size());
+//                System.out.println("PREV PAGE -- DETOUR");
+//                printBadgeShopEmbedPage(event, iter.previous());
+//                event.deferEdit();
+//            }
+//        }
+//        else if(event.getComponentId().equals("next-page")){
+//            if(iter.hasNext()){
+//                System.out.println("NEXT PAGE");
+//                printBadgeShopEmbedPage(event, iter.next());
+//                event.deferEdit();
+//            }
+//            else{
+//                iter = badgeShopEmbedPages.listIterator();
+//                System.out.println("NEXT PAGE -- DETOUR");
+//                printBadgeShopEmbedPage(event, iter.next());
+//                event.deferEdit();
+//            }
+//        }
+//        else if(event.getComponentId().equals("exit")){
+//            event.getMessage().delete().queue();
+//            event.deferReply();
+//        }
+
+
+
+
+
+       /* OLD CODE for printBadgeShopPageEmbed
+        if(pageIndex < 0) {
+            return;
+        }
+        else if(pageIndex > badgeShopEmbedPages.size()){
+            System.out.println("pageIndex EXCEED PAGES SIZE");
+            return;
+        }
+
+        if(badgeShopEmbedPages.isEmpty() || badgeShopEmbedPages.get(pageIndex).isEmpty()){
+            System.out.println("EMBED ARRAY IS EMPTY or EMBED IS EMPTY");
+            return;
+        }
+
+        MessageEmbed currentEmbed = badgeShopEmbedPages.get(pageIndex);
+
+        if(pageIndex == 0)
+            actionRow = firstPageActionRow;
+        else if (pageIndex == badgeShopEmbedPages.size()-1)
+            actionRow = lastPageActionRow;
+
+        event.getMessage().editMessageEmbeds(currentEmbed)
+                .setActionRows(actionRow)
+                .queue();*/

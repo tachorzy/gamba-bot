@@ -1,5 +1,6 @@
 package org.example;
 
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.entities.MessageChannel;
 public class SignUp {
@@ -23,16 +24,15 @@ public class SignUp {
         event.getChannel().sendMessage(spamNotificationImage ).queue();
     }
     //overidden function that is used in the About class on button interaction, where the MessageReceivedEvent is unavailable so instead we pass the channelID
-    public void signupUser(MessageChannel channel, boolean userExist,DataBase server, long userID){
+    public void signupUser(MessageChannel eventChannel, boolean userExist,DataBase server, long userID, ButtonInteractionEvent event){
         if(!userExist){
             server.insertUser(String.valueOf(userID));
-            String message = signupEmote+"**WELCOME!** <@" + channel.getJDA().getSelfUser().getIdLong() + ">" + " has bestowed you the lifestyle of Gamba Addiction" + signupEmote;
-            channel.sendMessage(message).queue();
-            channel.sendMessage(signupImage).queue();
+            String message = signupEmote+"**WELCOME!** <@" + eventChannel.getJDA().getSelfUser().getIdLong() + ">" + " has bestowed you the lifestyle of Gamba Addiction" + signupEmote;
+            eventChannel.sendMessage(message).queue();
+            eventChannel.sendMessage(signupImage).queue();
         }
+        //code the opposite case, and send a dm message teling them they're signedup
 
-        channel.sendMessage(spamNotificationMessage ).queue();
-        channel.sendMessage(spamNotificationImage ).queue();
     }
 
 }
