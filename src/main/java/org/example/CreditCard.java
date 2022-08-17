@@ -30,14 +30,13 @@ public class CreditCard {
     public String sussyCoinEmote = "<a:SussyCoin:1004568859648466974>";
 
     //creates embed of user information such as credits, badges etc
-    public void createCreditCardEmbed(String userNickname, String userName, String userPicture, String userID, String userCredits, ArrayList<String> userBadges) {
-        if (userNickname != null)
-            creditCardEmbed.setTitle(userNickname + " [" + userName + "]");
-        else
-            creditCardEmbed.setTitle(userName);
+    public void createCreditCardEmbed(String userNickname, String userName, String userPicture, String userID, String userCredits, ArrayList<String> userBadges,String userBanner) {
+        if (userNickname != null){ creditCardEmbed.setTitle(userNickname + " [" + userName + "]");}
+        else{ creditCardEmbed.setTitle(userName);}
 
         creditCardEmbed.setColor(creditCardEmbedColor);
         creditCardEmbed.setThumbnail(userPicture);
+        creditCardEmbed.setImage(userBanner);
         creditCardEmbed.setFooter("City: Waka Waka eh eh"); //change later to where user can change city name.
         creditCardEmbed.setTimestamp(Instant.now());
 
@@ -54,13 +53,15 @@ public class CreditCard {
     //obtain user info and call build embed after that print to discord and clear the embed
     public void printCreditCard(MessageReceivedEvent event, DataBase server) {
         ArrayList<String> userBadges = server.getUserSlotBadges(String.valueOf(event.getAuthor().getIdLong()));
-        String userCredits = server.getUserCredits(String.valueOf(event.getAuthor().getIdLong()));
+        String userCredits = String.valueOf(server.getUserCredits(String.valueOf(event.getAuthor().getIdLong())));
         String userID = event.getAuthor().getId();
         String userPicture = event.getAuthor().getAvatarUrl();
         String userNickname = event.getMember().getNickname();
         String userName = event.getAuthor().getAsTag();
+        String userBanner = server.getBannerUrlSlot(String.valueOf(event.getAuthor().getIdLong()));
 
-        createCreditCardEmbed(userNickname, userName, userPicture, userID, userCredits, userBadges);
+
+        createCreditCardEmbed(userNickname, userName, userPicture, userID, userCredits, userBadges,userBanner);
         event.getChannel().sendMessageEmbeds(creditCardEmbed.build()).queue();
         creditCardEmbed.clear();
     }

@@ -23,6 +23,8 @@ public class BannerShop {
         shopEmbed.setTitle(moneyCashEmote + "SUSSY'S BANNERSHOP™" + moneyCashEmote);
         shopEmbed.setThumbnail(shopEmbedThumbnail);
         shopEmbed.setImage(shopEmbedImage);
+        if (bannerList == null){return;}
+        //iterate through map and get price of each banner
         for (Map.Entry<String, java.util.List<String>> stringListEntry : bannerList.entrySet()) {
             java.util.List<String> elementVal = (java.util.List<String>) ((Map.Entry) stringListEntry).getValue();
             shopEmbed.addField((String) ((Map.Entry) stringListEntry).getKey(), stackCashEmote + " Price: $" + elementVal.get(1), true);

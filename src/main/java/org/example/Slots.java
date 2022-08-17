@@ -1,7 +1,6 @@
 package org.example;
 
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.awt.*;
@@ -16,13 +15,14 @@ import java.util.Random;
  *  (2) Land at least one lucky 7.
  * Bonus multipliers are applied to all wins,
 */
+
 public class Slots {
     public EmbedBuilder slotEmbed = new EmbedBuilder();
     public Color slotEmbedColor = Color.ORANGE;
     public String slotEmbedThumbnail = "https://img1.picmix.com/output/stamp/normal/4/1/4/3/1323414_5774d.gif";
     public String tradeMark = "© 2022 Sussy Inc. All Rights Reserved.";
-
     public String bonusVal;
+
     public int userReq = 0;
     public int userBalance = 0;
     public int slotGameMinAmount = 250;
@@ -34,16 +34,15 @@ public class Slots {
     String lucky7Emote = "<:slot7:1007231327843659846>";
     String errorEmote = "<a:exclamationmark:1000459825722957905>";
     String squadHips = "<a:squadHips:1007265018661851206>";
-
     String inputErrorMsg = errorEmote + "Error: please specify a valid amount you would like to bet range " + slotGameMinAmount + "-" + slotGameMaxAmount;
     String invalidInputMsg = "Error: please specify a valid amount you would like to bet range 500-2000";
     String embedDividerText = "--------------------------------";
+
     //two jackpots, small chance either win 400k from hitting 3 books, or the grand jackpot from triple 7s
     int bookJackpot = 400000;
     int grandJackpot = 700000;
     ArrayList<String> fruitList = new ArrayList<String>();
-    //so far this will be 1-dimensional, maybe in the future we can update it to a 2D list
-    ArrayList<String> reels = new ArrayList<String>(3);
+    ArrayList<String> reels = new ArrayList<String>(3);     //so far this will be 1-dimensional, maybe in the future we can update it to a 2D list
 
     public void clearGame(){
         bonusVal = "";
@@ -64,7 +63,6 @@ public class Slots {
         fruitList.add("<:Diamond:1002340462721515630>");
         fruitList.add("<:Melon:1007288477290868807>");
         fruitList.add("<:Salmonberry:1007327997818314803>");
-
     }
 
     //there are 3 reels in our slot machine, we fill each one with a random emote from the fruitList
@@ -77,11 +75,11 @@ public class Slots {
         return reels;
     }
 
+    //can user a or operator to simplify
     public boolean didUserWin(ArrayList<String> reelResults){
-        if(reelResults.get(0) == reelResults.get(1) && reelResults.get(1) == reelResults.get(2))
-            return true;
-        else if(reelResults.contains(fruitList.get(1)))
-            return true;
+        if(reelResults.get(0) == reelResults.get(1) && reelResults.get(1) == reelResults.get(2)){            return true;
+        }
+        else if(reelResults.contains(fruitList.get(1))){return true;}
         return false;
     }
 

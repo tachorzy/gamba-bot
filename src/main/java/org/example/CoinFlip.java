@@ -26,9 +26,9 @@ public class CoinFlip {
     }
     //flip the coin and determine if the user won the coinflip or not
     public boolean didUserWin(String guess) {
-        int randomNum = new Random().nextInt(coinflipList.length);
 
         //do the coinflip and get result check with user
+        int randomNum = new Random().nextInt(coinflipList.length);
         compGuess = coinflipList[randomNum];
 
         //if heads use url for it vice versa
@@ -51,7 +51,7 @@ public class CoinFlip {
         try{
             //check users requests if its more than needed then do not allow them to gamble else allow
             int request =Integer.parseInt(userBetReq);
-            int balance = Integer.parseInt(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
+            int balance = server.getUserCredits(String.valueOf(event.getMember().getIdLong()));
 
             //handle if user requests less than 0 throw error
             if (request <= coinGameMinAmount  ||  request > coinGameMaxAmount){
@@ -77,15 +77,16 @@ public class CoinFlip {
 
         return true;
     }
+
     //updates users credits
     public void updateCredits(DataBase server ,MessageReceivedEvent event, int userReq, boolean addCredit){
-        int creditVal = Integer.parseInt(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
+        int creditVal = server.getUserCredits(String.valueOf(event.getMember().getIdLong()));
 
         //if addCredit is true add to credits else subtract
         if(addCredit){ creditVal += userReq; }
         else{ creditVal -= userReq; }
 
-        server.updateUserCredits(String.valueOf(event.getMember().getIdLong()),String.valueOf(creditVal));
+        server.updateUserCredits(String.valueOf(event.getMember().getIdLong()),creditVal);
     }
 
     public void flipCoin(DataBase server, MessageReceivedEvent event,String coinSide, String betAmount){
@@ -108,5 +109,4 @@ public class CoinFlip {
         //reset object
         clearGame();
     }
-
 }

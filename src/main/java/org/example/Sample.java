@@ -13,4 +13,6 @@ public class Sample {
         }
         else{ event.getChannel().sendMessage("Command does not exist use &help for more info " + "<@" + event.getMember().getId() + ">").queue(); }
     }
+
+    //update code to sample banners
 }

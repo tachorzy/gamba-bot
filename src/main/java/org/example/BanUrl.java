@@ -5,6 +5,7 @@ public class BanUrl {
     public String errorEmote = "<a:exclamationmark:1000459825722957905>";
     public String checkMarkEmote = "";
 
+    //insert url to be banned
     public void banLink(String urlRequested, DataBase server, MessageReceivedEvent event){
         String user =  "<@" +event.getMember().getId() + ">";
 

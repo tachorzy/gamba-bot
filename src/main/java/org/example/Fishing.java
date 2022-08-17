@@ -8,7 +8,6 @@ public class Fishing {
     HashMap<Integer, List<String>> critterList = new HashMap<>();
     ArrayList<Integer> rewardPointsList = new ArrayList<>(Arrays.asList(0, 100, 200, 300, 350, 400, 450, 500, 550, 600, 2000));
     List<String> critterTable = new ArrayList<>();
-
     public String critterChosen;
     public Integer compGuess;
     public Boolean didUserWinMoney = false;
@@ -39,6 +38,17 @@ public class Fishing {
         userBalance = 0;
     }
 
+    //updates users credits
+    public void updateCredits(DataBase server, MessageReceivedEvent event, int userReq, boolean addCredit){
+        int creditVal = server.getUserCredits(String.valueOf(event.getMember().getIdLong()));
+
+        //if addCredit is true add to credits else subtract
+        if(addCredit){ creditVal += userReq; }
+        else{ creditVal -= userReq; }
+
+        server.updateUserCredits(String.valueOf(event.getMember().getIdLong()),creditVal);
+    }
+
     //obtain the specific emoji the user "fished"
     public String getCritter(){
         return critterChosen;
@@ -60,17 +70,6 @@ public class Fishing {
         critterChosen = critterTable.get(new Random().nextInt(critterTable.size()));
     }
 
-    //updates users credits
-    public void updateCredits(DataBase server, MessageReceivedEvent event, int userReq, boolean addCredit){
-        int creditVal = Integer.parseInt(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
-
-        //if addCredit is true add to credits else subtract
-        if(addCredit){ creditVal += userReq; }
-        else{ creditVal -= userReq; }
-
-        server.updateUserCredits(String.valueOf(event.getMember().getIdLong()),String.valueOf(creditVal));
-    }
-
     //check if user has enough
     public boolean validBalance(DataBase server, MessageReceivedEvent event) {
         String user =  "<@" +event.getMember().getId() + ">";
@@ -78,7 +77,7 @@ public class Fishing {
         try {
             //check users requests if its more than needed then do not allow them to gamble else allow
             int request = 20;
-            int balance = Integer.parseInt(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
+            int balance = server.getUserCredits(String.valueOf(event.getMember().getIdLong()));
 
             //check if user has enough funds
             if (request > balance) {
@@ -119,5 +118,4 @@ public class Fishing {
         //reset object
         clearGame();
     }
-
 }

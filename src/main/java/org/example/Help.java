@@ -6,7 +6,6 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonInteraction;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -35,7 +34,8 @@ public class Help extends ListenerAdapter {
     public HashMap<String,ArrayList<String>> badgeCommandTable = new HashMap<String, ArrayList<String>>();
 
     //Note when you add to hashmap, you need to add command to arraylist below also
-    public ArrayList<String> regularCommandNames = new ArrayList<>(Arrays.asList("addcommand", "resetshop", "ban", "creditcard", "help", "buy", "signup", "shop", "badgeshop", "sample", "beg", "gift"));
+    public ArrayList<String> regularCommandNames = new ArrayList<>(Arrays.asList("addcommand","addbanner", "resetshop", "ban", "creditcard", "help", "buy",
+            "signup", "shop", "badgeshop", "sample", "beg", "gift","bannershop","equipbanner","unequipbanner"));
     public ArrayList<String> gameCommandNames = new ArrayList<>(Arrays.asList("coinflip", "diceroll", "fish", "jackpotsize", "spinwheel"));
     public ArrayList<String> badgeCommandNames = new ArrayList<>(Arrays.asList("equipbadge", "unequipbadge", "clearbadges", "inventory", "wipeinventory"));
 
@@ -47,13 +47,6 @@ public class Help extends ListenerAdapter {
             Button.secondary("badge-page", "Badge Commands"),
             Button.danger("exit", "Exit ✖")
             );
-    /*
-    class HelpEmbed {
-        public ArrayList<EmbedBuilder> helpEmbedPages = new ArrayList();
-        int pageNumber = 0;
-    }*/
-    //emotes
-    public String helpEmote = "<a:help:1006551690494885889>";
 
     //constructor
     public Help(Character PREFIX){
@@ -65,18 +58,24 @@ public class Help extends ListenerAdapter {
                 "Your credit card has **4 badge slots** but comes with an **inventory** of 32 slots. " +
                 "You can access your inventory with the command: " + PREFIX + "inventory";
 
-        regularCommandTable.put("addcommand", new ArrayList<>(Arrays.asList(":new:", "PERMISSION: MOD\nadds ur/image/gif requested \nEX: " + PREFIX + "addcommand kermit dance (url here) gif 2000")));
+        regularCommandTable.put("addcommand", new ArrayList<>(Arrays.asList(":new:", "PERMISSION: MOD\nadds url/image/gif requested \nEX: " + PREFIX + "addcommand kermit dance (url here) gif 2000")));
+        regularCommandTable.put("addbanner", new ArrayList<>(Arrays.asList(":new:", "PERMISSION: MOD\nadds url/image/gif requested \nEX: " + PREFIX + "addbanner kermit dance (url here) gif 2000")));
         regularCommandTable.put("resetshop", new ArrayList<>(Arrays.asList(":atm:", "PERMISSION: MOD\nresets and updates shop\nEX: " + PREFIX + "resetshop")));
         regularCommandTable.put("ban", new ArrayList<>(Arrays.asList(":no_entry_sign:", "PERMISSION: MOD\nbans url/image/gif etc requested \nEX: " + PREFIX + "ban (url here)")));
         regularCommandTable.put("creditcard", new ArrayList<>(Arrays.asList(":credit_card:", "displays users balance \nEX: " + PREFIX + "creditcard")));
         regularCommandTable.put("help", new ArrayList<>(Arrays.asList(":sos:", "displays embed of commands to user \nEX: " + PREFIX + "help")));
-        regularCommandTable.put("buy", new ArrayList<>(Arrays.asList(":shopping_bags:", "Used to purchase a specific command or badge with credits. \nEX: " + PREFIX + "buy command kermitdance or " + PREFIX + "buy badge CougarCS")));
+        regularCommandTable.put("buy", new ArrayList<>(Arrays.asList(":shopping_bags:", "Used to purchase a specific command or badge with credits. \nEX: " + PREFIX + "buy command kermitdance or "
+                + PREFIX + "buy badge CougarCS or " + PREFIX + "buy banner yoru" )));
         regularCommandTable.put("signup", new ArrayList<>(Arrays.asList(":sos:", "displays embed of commands to user \nEX: " + PREFIX + "help")));
         regularCommandTable.put("shop", new ArrayList<>(Arrays.asList(":scroll:", "Shows Sussy's Megacenter for commands on sale \nEX: " + PREFIX + "shop")));
         regularCommandTable.put("badgeshop", new ArrayList<>(Arrays.asList(":name_badge:", "Shows shop for credit card badges \nEX: " + PREFIX + "badgeshop")));
         regularCommandTable.put("sample", new ArrayList<>(Arrays.asList(":inbox_tray:", "Samples a specific command and dms to user how it would look when user uses specific command \nEX: " + PREFIX + "sample kermitdance")));
         regularCommandTable.put("beg", new ArrayList<>(Arrays.asList(":pleading_face:", "@ another user to beg for money \nEX: " + PREFIX + "beg @(user here)")));
         regularCommandTable.put("gift", new ArrayList<>(Arrays.asList(":gift:", "Gifts SussyCoins to recipient specified \nEX: " + PREFIX + "gift (amount ex: 10) @(valid user here)\n " + PREFIX + "gift 10 @Tariq")));
+        regularCommandTable.put("bannershop", new ArrayList<>(Arrays.asList(":name_badge:", "opens up banner shop \nEX: " + PREFIX + "bannershop")));
+        regularCommandTable.put("equipbanner", new ArrayList<>(Arrays.asList(":newspaper:", "equip banner specified \nEX: " + PREFIX + "equipbanner yoru")));
+        regularCommandTable.put("unequipbanner", new ArrayList<>(Arrays.asList(":newspaper2:", "unequip current banner  \nEX: " + PREFIX + "unequipbanner yoru")));
+
 
         gameCommandTable.put("coinflip", new ArrayList<>(Arrays.asList(":coin:", "Flips a two sided coin (heads/tails) \nEX: " + PREFIX + "coinflip heads 100  BET RANGE: (1-" + coinFlipObject.coinGameMaxAmount + ")")));
         gameCommandTable.put("diceroll", new ArrayList<>(Arrays.asList(":game_die:", "Win by rolling a 3 or a 6, if you roll a 6 you get a bonus bet multiplier\nMultiplier: \n100%\n200%\n300%\n400%\n500%\n600%" + "\n EX: " + PREFIX + "diceroll 500  BET RANGE: (" + diceRollObject.diceGameMinAmount + "-" + diceRollObject.diceGameMaxAmount + ")")));
@@ -135,12 +134,8 @@ public class Help extends ListenerAdapter {
     public void printHelpList(MessageReceivedEvent event,Character PREFIX){
         regularCommandEmbed = buildEmbedList(regularCommandEmbed,regularCommandNames,regularCommandTable,"Regular");
         regularCommandEmbed.setFooter(tradeMarkMessage + "\t\t\t\t1/3"); //for now the number of pages is hardcoded here to 3 since the helpEmbeds list is 0 in this scope. We can fix this later but it's a minor issue.
-
-        event.getChannel().sendMessageEmbeds(regularCommandEmbed.build())
-                .setActionRows(actionRow)
-                .queue();
+        event.getChannel().sendMessageEmbeds(regularCommandEmbed.build()).setActionRows(actionRow).queue();
         regularCommandEmbed.clear();
-        //event.getChannel().sendMessageEmbeds(regularCommandEmbed.build(), gameCommandEmbed.build(), badgeCommandEmbed.build()).queue();
     }
 
     //fill and initialize our helpEmbeds ArrayList before returning it.
@@ -157,17 +152,14 @@ public class Help extends ListenerAdapter {
 
     //prints each embed page with its appropriate action row of buttons. Also sets the footer of each page with a page number.
     public void printEmbedPage(ButtonInteractionEvent event, int pageNumber){
-        if(helpEmbedPages.isEmpty())
-            helpEmbedPages = fillEmbedList();
-
+        if(helpEmbedPages.isEmpty()){helpEmbedPages = fillEmbedList(); }
         EmbedBuilder currentEmbed = helpEmbedPages.get(pageNumber);
         currentEmbed.setFooter(tradeMarkMessage + "\t\t\t\t" + (pageNumber + 1) + "/" + helpEmbedPages.size());
-        event.getMessage().editMessageEmbeds(currentEmbed.build())
-                .setActionRows(actionRow)
-                .queue();
-        //helpEmbeds.get(pageNumber).clear(); //this is commented out because we're just editing the embed. Also if you clear at the end you won't be able to visit the previous page.
+        event.getMessage().editMessageEmbeds(currentEmbed.build()).setActionRows(actionRow).queue();
     }
 
+
+    //on button interaction when button is clicked for a specific page load new embed
     @Override
     public void onButtonInteraction(@NotNull ButtonInteractionEvent event){
         if(event.getComponentId().equals("main-page")){

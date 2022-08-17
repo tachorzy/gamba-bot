@@ -13,7 +13,7 @@ public class JackpotSize {
     public String moneyCashEmote = "<a:moneycash:1000225442260861018>";
     public String coinBagEmote = "<a:coinbag:1000231940793843822>";
     public String tradeMark ="© 2022 Sussy Inc. All Rights Reserved.";
-    public JackpotWheel jackpotWheelObject = new JackpotWheel();
+    public JackpotWheel jackpotWheelObject;
 
     //create embed with information provided
     public void createjkpotEmbed(){
@@ -26,7 +26,8 @@ public class JackpotSize {
     }
 
     //display the shop embed to user
-    public void printJkpotSizeEmbed(MessageReceivedEvent event){
+    public void printJkpotSizeEmbed(MessageReceivedEvent event,JackpotWheel jkpotWheel){
+        jackpotWheelObject = jkpotWheel;
         createjkpotEmbed();
         event.getChannel().sendMessageEmbeds(jkpotSizeEmbed.build()).queue();
         jkpotSizeEmbed.clear();
