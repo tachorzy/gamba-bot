@@ -2,15 +2,18 @@ package org.example;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.interactions.components.buttons.ButtonInteraction;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.*;
 
-public class Help {
+public class Help extends ListenerAdapter {
     public DiceRoll diceRollObject  = new DiceRoll();
     public CoinFlip coinFlipObject = new CoinFlip();
     public JackpotWheel jackpotWheelObject = new JackpotWheel();
@@ -23,27 +26,44 @@ public class Help {
     public String gameCommandEmote = "<a:HYPERSRAIN:1000684955690614848>";
     public String notificationEmote = "<a:exclamationmark:1000459825722957905>";
     public String tradeMarkMessage = "© 2022 Sussy Inc. All Rights Reserved.";
+
     public String PrefixReminderMessage; // used to remind user to use appropriate prefix with command
     public String badgeDescriptionMessage; // notify the user about the important info on badge system
 
-    public HashMap<String,ArrayList<String>> regularCommandTable = new HashMap<>();
-    public HashMap<String,ArrayList<String>> gameCommandTable = new HashMap<>();
-    public HashMap<String,ArrayList<String>> badgeCommandTable = new HashMap<>();
+    public HashMap<String,ArrayList<String>> regularCommandTable = new HashMap<String, ArrayList<String>>();
+    public HashMap<String,ArrayList<String>> gameCommandTable = new HashMap<String, ArrayList<String>>();
+    public HashMap<String,ArrayList<String>> badgeCommandTable = new HashMap<String, ArrayList<String>>();
 
     //Note when you add to hashmap, you need to add command to arraylist below also
     public ArrayList<String> regularCommandNames = new ArrayList<>(Arrays.asList("addcommand", "resetshop", "ban", "creditcard", "help", "buy", "signup", "shop", "badgeshop", "sample", "beg", "gift"));
     public ArrayList<String> gameCommandNames = new ArrayList<>(Arrays.asList("coinflip", "diceroll", "fish", "jackpotsize", "spinwheel"));
     public ArrayList<String> badgeCommandNames = new ArrayList<>(Arrays.asList("equipbadge", "unequipbadge", "clearbadges", "inventory", "wipeinventory"));
 
+    //we'll use this to keep track of the current pageNumber
+    public ArrayList<EmbedBuilder> helpEmbedPages = new ArrayList();
+    public ActionRow actionRow = ActionRow.of(
+            Button.secondary("main-page", "Regular Commands"),
+            Button.secondary("game-page", "Game Commands"),
+            Button.secondary("badge-page", "Badge Commands"),
+            Button.danger("exit", "Exit ✖")
+            );
+    /*
+    class HelpEmbed {
+        public ArrayList<EmbedBuilder> helpEmbedPages = new ArrayList();
+        int pageNumber = 0;
+    }*/
+    //emotes
+    public String helpEmote = "<a:help:1006551690494885889>";
+
     //constructor
     public Help(Character PREFIX){
         PrefixReminderMessage = "Use the Prefix: " + PREFIX + " before the command names";
         badgeDescriptionMessage =
                 "With credits users can buy rewards from the shop such as credit card **badges** and media **commands**. " +
-                        "In the **badgeshop**, you can find badges that " +
-                        "you can buy and equip to your **credit card**. " +
-                        "Your credit card has **4 badge slots** but comes with an **inventory** of 32 slots. " +
-                        "You can access your inventory with the command: " + PREFIX + "inventory";
+                "In the **badgeshop**, you can find badges that " +
+                "you can buy and equip to your **credit card**. " +
+                "Your credit card has **4 badge slots** but comes with an **inventory** of 32 slots. " +
+                "You can access your inventory with the command: " + PREFIX + "inventory";
 
         regularCommandTable.put("addcommand", new ArrayList<>(Arrays.asList(":new:", "PERMISSION: MOD\nadds ur/image/gif requested \nEX: " + PREFIX + "addcommand kermit dance (url here) gif 2000")));
         regularCommandTable.put("resetshop", new ArrayList<>(Arrays.asList(":atm:", "PERMISSION: MOD\nresets and updates shop\nEX: " + PREFIX + "resetshop")));
@@ -105,20 +125,67 @@ public class Help {
         }
 
         embed.setTimestamp(Instant.now());
-        embed.setFooter(tradeMarkMessage);
+        //embed.setFooter(tradeMarkMessage); //we now change the footer in the printEmbedPage function.
         embed.setColor(helpEmbedColor);
         return embed;
     }
 
     //obtain the embeds and queue them for printing
-    public void printHelpList(MessageReceivedEvent event){
+    //obtain the first embed page and sets up it's action row and buttons to wait for a ButtonInteractionEven.
+    public void printHelpList(MessageReceivedEvent event,Character PREFIX){
+        regularCommandEmbed = buildEmbedList(regularCommandEmbed,regularCommandNames,regularCommandTable,"Regular");
+        regularCommandEmbed.setFooter(tradeMarkMessage + "\t\t\t\t1/3"); //for now the number of pages is hardcoded here to 3 since the helpEmbeds list is 0 in this scope. We can fix this later but it's a minor issue.
+
+        event.getChannel().sendMessageEmbeds(regularCommandEmbed.build())
+                .setActionRows(actionRow)
+                .queue();
+        regularCommandEmbed.clear();
+        //event.getChannel().sendMessageEmbeds(regularCommandEmbed.build(), gameCommandEmbed.build(), badgeCommandEmbed.build()).queue();
+    }
+
+    //fill and initialize our helpEmbeds ArrayList before returning it.
+    public ArrayList<EmbedBuilder> fillEmbedList(){
         regularCommandEmbed = buildEmbedList(regularCommandEmbed,regularCommandNames,regularCommandTable,"Regular");
         gameCommandEmbed = buildEmbedList(gameCommandEmbed,gameCommandNames,gameCommandTable,"Game");
         badgeCommandEmbed = buildEmbedList(badgeCommandEmbed,badgeCommandNames,badgeCommandTable,"Badge");
-        event.getChannel().sendMessageEmbeds(regularCommandEmbed.build(), gameCommandEmbed.build(), badgeCommandEmbed.build()).queue();
-        regularCommandEmbed.clear();
-        gameCommandEmbed.clear();
-        badgeCommandEmbed.clear();
 
+        helpEmbedPages.add(regularCommandEmbed);
+        helpEmbedPages.add(gameCommandEmbed);
+        helpEmbedPages.add(badgeCommandEmbed);
+        return helpEmbedPages;
+    }
+
+    //prints each embed page with its appropriate action row of buttons. Also sets the footer of each page with a page number.
+    public void printEmbedPage(ButtonInteractionEvent event, int pageNumber){
+        if(helpEmbedPages.isEmpty())
+            helpEmbedPages = fillEmbedList();
+
+        EmbedBuilder currentEmbed = helpEmbedPages.get(pageNumber);
+        currentEmbed.setFooter(tradeMarkMessage + "\t\t\t\t" + (pageNumber + 1) + "/" + helpEmbedPages.size());
+        event.getMessage().editMessageEmbeds(currentEmbed.build())
+                .setActionRows(actionRow)
+                .queue();
+        //helpEmbeds.get(pageNumber).clear(); //this is commented out because we're just editing the embed. Also if you clear at the end you won't be able to visit the previous page.
+    }
+
+    @Override
+    public void onButtonInteraction(@NotNull ButtonInteractionEvent event){
+        if(event.getComponentId().equals("main-page")){
+            printEmbedPage(event, 0);
+            event.deferEdit().queue();
+         }
+        else if(event.getComponentId().equals("game-page")){
+            printEmbedPage(event, 1);
+            event.deferEdit().queue();
+        }
+        else if(event.getComponentId().equals("badge-page")){
+            printEmbedPage(event, 2);
+            event.deferEdit().queue();
+        }
+        else if(event.getComponentId().equals("exit")){
+            event.getMessage().delete().queue();
+            event.deferReply();
+        }
     }
 }
+

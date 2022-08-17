@@ -2,8 +2,10 @@ package org.example;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import javax.security.auth.login.LoginException;
+import javax.swing.plaf.basic.BasicOptionPaneUI;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
@@ -19,7 +21,6 @@ public  class DiscordBot {
         String collectionCommands = null;
         String collectionBanUrl = null;
         String collectionBadges = null;
-        String collectionBanner = null;
         String databaseName = null;
         String DISCORDTOKEN = null;
         String DBTOKEN = null;
@@ -51,12 +52,8 @@ public  class DiscordBot {
                 case "dbtoken":
                     DBTOKEN = dataValue;
                     break;
-                case "banner":
-                    collectionBanner = dataValue;
-                    break;
                 case "prefix":
                     prefixVal = dataValue.charAt(0);
-                    break;
                 default:
                     break;
             }
@@ -66,8 +63,12 @@ public  class DiscordBot {
                 .setActivity(Activity.playing("Diceroll #Gamba Addiction"))
                 .build();
         //NOTE: if you want to create a new class for a new feature implementation, create a new object below
-        bot.addEventListener(new Commands(new DataBase(DBTOKEN,databaseName,collectionUser,collectionCommands
-                ,collectionBanUrl,collectionBadges,collectionBanner),prefixVal,new Help(prefixVal)));
+        //bot.addEventListener(new Commands(new DataBase(DBTOKEN,databaseName,collectionUser,collectionCommands,collectionBanUrl,collectionBadges),prefixVal,new Help(prefixVal)));
+        DataBase server = new DataBase(DBTOKEN,databaseName,collectionUser,collectionCommands,collectionBanUrl,collectionBadges);
+        bot.addEventListener(new Commands(server,prefixVal,new Help(prefixVal)));
+        bot.addEventListener(new Help(prefixVal));
+        bot.addEventListener(new About(server));
+        bot.addEventListener(new BadgeShop());
         System.out.println(bot.getSelfUser().getName() + " is up and running!");
     }
 }

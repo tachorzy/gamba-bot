@@ -12,9 +12,9 @@ public class Gift {
             return false;
         }
 
-        int creditVal = server.getUserCredits(String.valueOf(userID));
+        int creditVal = Integer.parseInt(server.getUserCredits(String.valueOf(userID)));
         creditVal += userReq;
-        server.updateUserCredits(String.valueOf(userID),creditVal);
+        server.updateUserCredits(String.valueOf(userID),String.valueOf(creditVal));
 
         return true;
     }
@@ -23,7 +23,7 @@ public class Gift {
     public Boolean removeGifterCredits(DataBase server,MessageReceivedEvent event, Integer userReq ){
         String user =  "<@" +event.getMember().getId() + ">";
 
-        int creditVal = server.getUserCredits(String.valueOf(event.getMember().getIdLong()));
+        int creditVal = Integer.parseInt(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
 
         //check if user has enough funds
         if (userReq > creditVal) {
@@ -36,7 +36,7 @@ public class Gift {
         }
         creditVal -= userReq;
 
-        server.updateUserCredits(String.valueOf(event.getMember().getIdLong()),creditVal);
+        server.updateUserCredits(String.valueOf(event.getMember().getIdLong()),String.valueOf(creditVal));
 
         //return true if deduction was sucessful
         return true;

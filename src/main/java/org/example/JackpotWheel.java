@@ -1,8 +1,6 @@
 package org.example;
 
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -67,7 +65,7 @@ public class JackpotWheel {
         try{
             //check users requests if its more than needed then do not allow them to gamble else allow
             int request = 1000;
-            int balance = server.getUserCredits(String.valueOf(event.getMember().getIdLong()));
+            int balance = Integer.parseInt(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
 
             //check if user has enough funds if not return false
             if (request > balance) {
@@ -87,15 +85,17 @@ public class JackpotWheel {
         return true;
     }
 
+
+
     //updates users credits
     public void updateCredits(DataBase server, MessageReceivedEvent event, int userReq, boolean addCredit){
-        int creditVal = server.getUserCredits(String.valueOf(event.getMember().getIdLong()));
+        int creditVal = Integer.parseInt(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
 
         //if addCredit is true add to credits else subtract
         if(addCredit){ creditVal += userReq; }
         else{ creditVal -= userReq; }
 
-        server.updateUserCredits(String.valueOf(event.getMember().getIdLong()),creditVal);
+        server.updateUserCredits(String.valueOf(event.getMember().getIdLong()),String.valueOf(creditVal));
     }
 
     public  void startSpinWheel(DataBase server, MessageReceivedEvent event){
@@ -119,4 +119,5 @@ public class JackpotWheel {
         //reset object
         clearGame();
     }
+
 }
