@@ -15,6 +15,7 @@ public class DataBase {
     public MongoCollection <Document> collectionCommands;
     public MongoCollection <Document> collectionBanUrl;
     public MongoCollection <Document> collectionBadges;
+    public MongoCollection <Document> collectionBanner;
 
     //constructor
     public DataBase(String TOKEN, String dbName, String colName, String colCom ,String colBanUrl,String colBadge) {
@@ -94,6 +95,15 @@ public class DataBase {
 
         if(userInfo == null) {return null;}
         return (ArrayList<String>) userInfo.get("commandlist");
+    }
+    //allows moderators to add a new command into the the database collection  which can then be purchased by users in discord channel
+    public void insertBanner(String bannerName,String url, String type, String cost){
+        Document documentBanner = new Document();
+        documentBanner.append("command",bannerName);
+        documentBanner.append("url",url);
+        documentBanner.append("type",type);
+        documentBanner.append("cost",cost);
+        collectionBanner.insertOne(documentBanner);
     }
 
     //renamed to getUserBadgeInventory since we are distributing items across "different" inventories though I think we should soon make this
