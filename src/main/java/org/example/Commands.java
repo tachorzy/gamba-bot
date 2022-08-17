@@ -228,8 +228,9 @@ public class Commands extends ListenerAdapter {
                     break;
                 case "sample":
                     if(!isChannelValid(event,"lounge")){break;}
-                    if(!checkUserRequestValid(event,args.length,2)){break;}
-                    sampleComObject.sampleCommand(event,commandList,args[1]);
+                    if(!checkUserRequestValid(event,args.length,3)){break;}
+                    if(args[1].equals("banner")){ sampleComObject.sampleCommand(event,bannerList,args[2]); }
+                    else{ sampleComObject.sampleCommand(event,commandList,args[2]); }
                     break;
                 case "badgeshop":
                     if(!isChannelValid(event,"lounge")){break;}

@@ -13,14 +13,14 @@ public class BannerShop {
     public EmbedBuilder shopEmbed = new EmbedBuilder();
     public Color shopEmbedColor = Color.MAGENTA;
     public String stackCashEmote = "<:cash:1000666403675840572>";
-    public String moneyCashEmote = "<a:moneycash:1000225442260861018>";
+    public String pepeEmote = "<a:pepeMEX:1000825833335828620>";
     public String tradeMark = "© 2022 Sussy Inc. All Rights Reserved.";
-    public String shopEmbedImage = "https://arc-anglerfish-arc2-prod-tronc.s3.amazonaws.com/public/YPZFICVQMRGXPMWDR2HVEEMTNA.jpg";
-    public String shopEmbedThumbnail = "https://c.tenor.com/rgNhzkA41qIAAAAM/catjam-cat-jamming.gif";
+    public String shopEmbedImage = "https://cdn.discordapp.com/attachments/954548409396785162/1009383688603177071/unknown.png";
+    public String shopEmbedThumbnail = "https://c.tenor.com/YlBfgZ3_INcAAAAM/cat-kitty.gif";
 
     //create shop embed and return it
     public void createShopEmbed(HashMap<String, java.util.List<String>> bannerList) {
-        shopEmbed.setTitle(moneyCashEmote + "SUSSY'S BANNERSHOP™" + moneyCashEmote);
+        shopEmbed.setTitle(pepeEmote + "SUSSY'S BANNERSHOP™" + pepeEmote);
         shopEmbed.setThumbnail(shopEmbedThumbnail);
         shopEmbed.setImage(shopEmbedImage);
         if (bannerList == null){return;}

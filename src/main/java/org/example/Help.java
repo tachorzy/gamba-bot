@@ -69,13 +69,13 @@ public class Help extends ListenerAdapter {
         regularCommandTable.put("signup", new ArrayList<>(Arrays.asList(":sos:", "displays embed of commands to user \nEX: " + PREFIX + "help")));
         regularCommandTable.put("shop", new ArrayList<>(Arrays.asList(":scroll:", "Shows Sussy's Megacenter for commands on sale \nEX: " + PREFIX + "shop")));
         regularCommandTable.put("badgeshop", new ArrayList<>(Arrays.asList(":name_badge:", "Shows shop for credit card badges \nEX: " + PREFIX + "badgeshop")));
-        regularCommandTable.put("sample", new ArrayList<>(Arrays.asList(":inbox_tray:", "Samples a specific command and dms to user how it would look when user uses specific command \nEX: " + PREFIX + "sample kermitdance")));
+        regularCommandTable.put("sample", new ArrayList<>(Arrays.asList(":inbox_tray:", "Samples a specific command or banner and dms to user how it would look when user uses specific command \nEX: "
+                + PREFIX + "sample banner kermitdance " + PREFIX + "sample command kermitdance")));
         regularCommandTable.put("beg", new ArrayList<>(Arrays.asList(":pleading_face:", "@ another user to beg for money \nEX: " + PREFIX + "beg @(user here)")));
         regularCommandTable.put("gift", new ArrayList<>(Arrays.asList(":gift:", "Gifts SussyCoins to recipient specified \nEX: " + PREFIX + "gift (amount ex: 10) @(valid user here)\n " + PREFIX + "gift 10 @Tariq")));
         regularCommandTable.put("bannershop", new ArrayList<>(Arrays.asList(":name_badge:", "opens up banner shop \nEX: " + PREFIX + "bannershop")));
         regularCommandTable.put("equipbanner", new ArrayList<>(Arrays.asList(":newspaper:", "equip banner specified \nEX: " + PREFIX + "equipbanner yoru")));
         regularCommandTable.put("unequipbanner", new ArrayList<>(Arrays.asList(":newspaper2:", "unequip current banner  \nEX: " + PREFIX + "unequipbanner yoru")));
-
 
         gameCommandTable.put("coinflip", new ArrayList<>(Arrays.asList(":coin:", "Flips a two sided coin (heads/tails) \nEX: " + PREFIX + "coinflip heads 100  BET RANGE: (1-" + coinFlipObject.coinGameMaxAmount + ")")));
         gameCommandTable.put("diceroll", new ArrayList<>(Arrays.asList(":game_die:", "Win by rolling a 3 or a 6, if you roll a 6 you get a bonus bet multiplier\nMultiplier: \n100%\n200%\n300%\n400%\n500%\n600%" + "\n EX: " + PREFIX + "diceroll 500  BET RANGE: (" + diceRollObject.diceGameMinAmount + "-" + diceRollObject.diceGameMaxAmount + ")")));
