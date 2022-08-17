@@ -89,6 +89,13 @@ public class DataBase {
 //        if(userInfo == null) {return null;}
 //        return (ArrayList<String>) userInfo.get("inventory");
 //    }
+    public ArrayList<String> getUserInventoryCommand(String userID){
+        Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
+
+        if(userInfo == null) {return null;}
+        return (ArrayList<String>) userInfo.get("commandlist");
+    }
+
     //renamed to getUserBadgeInventory since we are distributing items across "different" inventories though I think we should soon make this
     //different categories of one inventory later on.
     public HashMap<String,String> getUserBadgeInventory(String userID){
