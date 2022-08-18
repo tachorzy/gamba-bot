@@ -16,7 +16,8 @@ public class Commands extends ListenerAdapter {
     public Fishing fishingObject = new Fishing();
     public SignUp signupObject = new SignUp();
     public CreditCard creditCardObject = new CreditCard();
-    public Shop shopObject = new Shop();
+    public CommandShop commandShopObject = new CommandShop();
+    public MegaStore storeObject = new MegaStore();
     public Buy buyObject = new Buy();
     public Leaderboard leaderboardObject = new Leaderboard();
     public AddBadge addBadgeObject = new AddBadge();
@@ -196,11 +197,19 @@ public class Commands extends ListenerAdapter {
                     break;
                 case "shop":
                     if(!isChannelValid(event,"lounge")){break;}
-                    shopObject.printShopEmbed(event,commandList);
+                    storeObject.printShopEmbed(event,server, commandList,badgeList,bannerList);
+                    break;
+                case "badgeshop":
+                    if(!isChannelValid(event,"lounge")){break;}
+                    badgeShopObject.printBadgeShopEmbed(event,server,badgeList);
                     break;
                 case "bannershop":
                     if(!isChannelValid(event,"lounge")){break;}
                     bannerShopObject.printShopEmbed(event,bannerList);
+                    break;
+                case "commandshop":
+                    if(!isChannelValid(event,"lounge")){break;}
+                    commandShopObject.printShopEmbed(event,commandList);
                     break;
                 case "ban":
                     if(!checkUserRequestValid(event,args.length,2)){break;}
@@ -208,11 +217,11 @@ public class Commands extends ListenerAdapter {
                     break;
                 case "addcommand":
                     if(!checkUserRequestValid(event,args.length,5)){break;}
-                    if(addComObject.addNewCommand(server,event,args[1],args[2],args[3],args[4])){commandList = server.obtainCommands();}
+                    if(addComObject.addNewCommand(server,event,args[1],args[2],args[3],Integer.parseInt(args[4]))){commandList = server.obtainCommands();}
                     break;
                 case "addbanner":
                     if(!checkUserRequestValid(event,args.length,5)){break;}
-                    if(addBannerObject.addNewBanner(server,event,args[1],args[2],args[3],args[4])){bannerList = server.obtainBanners();}
+                    if(addBannerObject.addNewBanner(server,event,args[1],args[2],args[3],Integer.parseInt(args[4]))){bannerList = server.obtainBanners();}
                     break;
                 case "resetshop":
                     if(resetShopObject.isUserMod(server,event)){
@@ -221,7 +230,7 @@ public class Commands extends ListenerAdapter {
                         bannerList = server.obtainBanners();
                     }
                     break;
-                case "inventorycommand":
+                case "commandinventory":
                     if(!isChannelValid(event,"lounge")){break;}
                     if(!checkUserRequestValid(event,args.length,1)){break;}
                     inventoryCommandObject.printInventoryCommandEmbed(event,server,String.valueOf(event.getMember().getIdLong()));
@@ -231,10 +240,6 @@ public class Commands extends ListenerAdapter {
                     if(!checkUserRequestValid(event,args.length,3)){break;}
                     if(args[1].equals("banner")){ sampleComObject.sampleCommand(event,bannerList,args[2]); }
                     else{ sampleComObject.sampleCommand(event,commandList,args[2]); }
-                    break;
-                case "badgeshop":
-                    if(!isChannelValid(event,"lounge")){break;}
-                    badgeShopObject.printBadgeShopEmbed(event,server,badgeList);
                     break;
                 case "buy":
                     if(!isChannelValid(event,"lounge")){break;}
@@ -246,14 +251,17 @@ public class Commands extends ListenerAdapter {
                     break;
                 case "replacebadge":
                     if(!isChannelValid(event,"lounge")){break;}
+                    if(!checkUserRequestValid(event,args.length,2)){break;}
                     creditCardObject.replaceBadge(event, badgeList, args[1], args[2], server);
                     break;
                 case "equipbadge":
                     if(!isChannelValid(event,"lounge")){break;}
+                    if(!checkUserRequestValid(event,args.length,2)){break;}
                     creditCardObject.equipBadge(event, badgeList, args[1], server);
                     break;
                 case "unequipbadge":
                     if(!isChannelValid(event,"lounge")){break;}
+                    if(!checkUserRequestValid(event,args.length,2)){break;}
                     creditCardObject.unequipBadge(event, badgeList, args[1], server);
                     break;
                 case "clearbadges":
@@ -280,6 +288,7 @@ public class Commands extends ListenerAdapter {
                     break;
                 case "gift":
                     if(!isChannelValid(event,"lounge")){break;}
+                    if(!checkUserRequestValid(event,args.length,3)){break;}
                     if(giftObject.giftCredits(server,event,args[2],args[1])){
                         event.getChannel().deleteMessageById(event.getChannel().getLatestMessageIdLong()).queue();
                         event.getChannel().sendMessage(userID + " gifted to " + args[2] + "\n AMOUNT: " + args[1] +  " <a:SussyCoin:1004568859648466974>").queue();
@@ -319,31 +328,32 @@ public class Commands extends ListenerAdapter {
                     if(!isChannelValid(event,"wheel")){break;}
                     jackpotWheelObject.startSpinWheel(server,event);
                     break;
-                case "slot":
+                case "slots":
                     if(!checkUserRequestValid(event,args.length,2)){break;}
-                    if(slotsObject.validInput(args[1],server,event)) {
-                        ArrayList<String> reelResults = slotsObject.getReelResults();
-                        slotsObject.buildSlotEmbed(event, reelResults, args[1]);
-
-                        if(slotsObject.didUserWin(reelResults)){
-                            String book = slotsObject.fruitList.get(0);
-                            String lucky7 = slotsObject.fruitList.get(1);
-                            //twitch meme easter egg, if you win with all books you win the jackpot of 400k on top of your bonus.
-                            if(reelResults.get(0).equals(book) && !reelResults.contains(lucky7))
-                                updateCredits(event, slotsObject.userReq + slotsObject.bookJackpot, true);
-                            //if you win with 777 you get the grand jackpot on top of your bonus.
-                            else if(reelResults.get(0).equals(lucky7) && reelResults.get(1).equals(lucky7) && reelResults.get(2).equals(lucky7)){
-                                updateCredits(event, slotsObject.userReq + slotsObject.bookJackpot, true);
-                            }
-                            else{ //default wins
-                                updateCredits(event,slotsObject.userReq,true);
-                            }
-                        }
-                        else{
-                            updateCredits(event,slotsObject.userReq,false);
-                        }
-                    }
-                    slotsObject.clearGame();
+                    slotsObject.startSlots(server,event,args[1]);
+//                    if(slotsObject.validInput(args[1],server,event)) {
+//                        ArrayList<String> reelResults = slotsObject.getReelResults();
+//                        slotsObject.buildSlotEmbed(event, reelResults, args[1]);
+//
+//                        if(slotsObject.didUserWin(reelResults)){
+//                            String book = slotsObject.fruitList.get(0);
+//                            String lucky7 = slotsObject.fruitList.get(1);
+//                            //twitch meme easter egg, if you win with all books you win the jackpot of 400k on top of your bonus.
+//                            if(reelResults.get(0).equals(book) && !reelResults.contains(lucky7))
+//                                updateCredits(event, slotsObject.userReq + slotsObject.bookJackpot, true);
+//                            //if you win with 777 you get the grand jackpot on top of your bonus.
+//                            else if(reelResults.get(0).equals(lucky7) && reelResults.get(1).equals(lucky7) && reelResults.get(2).equals(lucky7)){
+//                                updateCredits(event, slotsObject.userReq + slotsObject.bookJackpot, true);
+//                            }
+//                            else{ //default wins
+//                                updateCredits(event,slotsObject.userReq,true);
+//                            }
+//                        }
+//                        else{
+//                            updateCredits(event,slotsObject.userReq,false);
+//                        }
+//                    }
+//                    slotsObject.clearGame();
                     break;
                 default:
                     break;

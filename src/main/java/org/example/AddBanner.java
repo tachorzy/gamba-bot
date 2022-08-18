@@ -7,7 +7,7 @@ public class AddBanner {
     public String checkMarkEmote = "";
 
     //add new banner to database return true if successfully added into the database
-    public boolean addNewBanner(DataBase server, MessageReceivedEvent event, String commandName, String commandUrl, String commandType, String commandCost){
+    public boolean addNewBanner(DataBase server, MessageReceivedEvent event, String commandName, String commandUrl, String commandType, int commandCost){
         String user =  "<@" +event.getMember().getId() + ">";
 
         //checks if user is mod before using command

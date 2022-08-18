@@ -7,7 +7,7 @@ public class AddCommand {
     public String checkMarkEmote = "";
 
     //add new command to database and bans the url also ,return true if successfully added into the database
-    public boolean addNewCommand(DataBase server, MessageReceivedEvent event, String commandName, String commandUrl, String commandType, String commandCost){
+    public boolean addNewCommand(DataBase server, MessageReceivedEvent event, String commandName, String commandUrl, String commandType, int commandCost){
         String user =  "<@" +event.getMember().getId() + ">";
         //checks if user is mod before using command
         if(server.isUserMod(String.valueOf(event.getMember().getIdLong()))){

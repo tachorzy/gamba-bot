@@ -20,18 +20,17 @@ public class Inventory {
         HashMap<String,String> userInventory = server.getUserBadgeInventory(event.getMember().getId());
 
         //we add the item slots in first so we can have the number of items to display into the embed's title
-        int slots = 0, i = 0;
+        int i = 0;
         for(String badgeKey : userInventory.keySet()){
-            System.out.println("BADGEKEY IS:" + badgeKey);
-            slots = i+1;
-            inventoryEmbed.addField("Slot " + slots, badgeKey + "\n" + userInventory.get(badgeKey), true);
+            i += 1;
+            inventoryEmbed.addField("Slot " + i, badgeKey + "\n" + userInventory.get(badgeKey), true);
         }
         String userNickname = event.getMember().getNickname();
         String userName = event.getAuthor().getAsTag();
         if(userNickname != null)
-            inventoryEmbed.setTitle(userNickname + "\'s Inventory (" + slots + "/32)");
+            inventoryEmbed.setTitle(userNickname + "\'s Inventory (" + i + "/32)");
         else
-            inventoryEmbed.setTitle(userName + "\'s Inventory (" + slots + "/32)");
+            inventoryEmbed.setTitle(userName + "\'s Inventory (" + i + "/32)");
 
         inventoryEmbed.setColor(inventoryEmbedColor);
         inventoryEmbed.setDescription("ID:" + userID);

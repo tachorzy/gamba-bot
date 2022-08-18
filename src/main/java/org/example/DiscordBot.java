@@ -68,6 +68,7 @@ public  class DiscordBot {
         bot.addEventListener(new Help(prefixVal));
         bot.addEventListener(new About(server));
         bot.addEventListener(new BadgeShop());
+        bot.addEventListener(new MegaStore());
         System.out.println(bot.getSelfUser().getName() + " is up and running!");
     }
 }

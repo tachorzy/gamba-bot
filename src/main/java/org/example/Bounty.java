@@ -14,7 +14,8 @@ public class Bounty {
     public String moneyCashEmote = "<a:moneycash:1000225442260861018>";
 
     public void createBountyEmbed(DataBase server){
-        bountyBoardEmbed.setTitle("Bounty Board *sponsored by Sussy Inc.*");
+        bountyBoardEmbed.setTitle("Bounty Board");
+        bountyBoardEmbed.setDescription("Contracts sponsored by *Sussy Inc.* all rights reserved");
         bountyBoardEmbed.setColor(aboutEmbedColor);
         bountyBoardEmbed.setThumbnail(botLogoThumbnail);
         bountyBoardEmbed.addField("\"Diamond in the rough\"", "Catch a diamond while fishing\n" + stackCashEmote + " **reward:** $2,000 SussyCoin", false);

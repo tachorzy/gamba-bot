@@ -102,7 +102,8 @@ public class BadgeShop extends ListenerAdapter {
     }
 
     //prints the badgeShopEmbeds, updates the pageNumber from the number listed in the footer earlier. (this part is unfinished due to some changes I made earlier)
-    public void printBadgeShopEmbed(MessageReceivedEvent event, DataBase db,LinkedHashMap<String,List<String>> badgeList){
+    public void printBadgeShopEmbed(MessageReceivedEvent event, DataBase db, LinkedHashMap<String, List<String>> badgeList){
+
         MessageEmbed firstPage = createBadgeShopEmbeds(badgeList, db);
         iter = badgeShopEmbedPages.listIterator();
         event.getChannel().sendMessageEmbeds(firstPage).setActionRows(defActionRow).queue();
@@ -143,6 +144,10 @@ public class BadgeShop extends ListenerAdapter {
                 break;
             case "page3":
                 printBadgeShopEmbedPage(event, 2);
+                event.deferEdit().queue();
+                break;
+            case "exit":
+                event.getMessage().delete().queue();
                 event.deferEdit().queue();
                 break;
             default:

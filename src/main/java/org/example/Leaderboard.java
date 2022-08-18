@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.awt.*;
+import java.time.Instant;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -14,15 +15,19 @@ public class Leaderboard {
     public String tradeMark = "© 2022 Sussy Inc. All Rights Reserved.";
     public String sussyCoinEmote = "<a:SussyCoin:1004568859648466974>";
     public String botLogoThumbnail = "https://i.imgur.com/gX3XrZw.png";
+    public String rankImage = "https://www.meme-arsenal.com/memes/acd13a561f4f62beed581d3177b6fdde.jpg";
 
     public void createLeaderBoardEmbed(MessageReceivedEvent event, DataBase server){
         int i = 1;
-        LinkedHashMap<String, String> roster = server.findTopUsers();
+        LinkedHashMap<String, Integer> roster = server.findTopUsers();
         rankEmbed.setTitle(event.getGuild().getName() + "'s Richest Gamblers" + sussyCoinEmote);
         rankEmbed.setThumbnail(botLogoThumbnail);
+        rankEmbed.setImage(rankImage);
         rankEmbed.setColor(rankEmbedCOlor);
         rankEmbed.setDescription("In honor for those who have fallen to a early life of Gamba Addiction.\nLest we forget their abandoned loved ones.");
         rankEmbed.setFooter(tradeMark);
+        rankEmbed.setTimestamp(Instant.now());
+
         Iterator badgeIterator = roster.entrySet().iterator();
 
         //iterate and get top 10 users mark first three with special emotes
@@ -30,7 +35,7 @@ public class Leaderboard {
             if(i > 10){return;}
             Map.Entry element = (Map.Entry)badgeIterator.next();
             String userID = (String)element.getKey();
-            String elementVal = (String)element.getValue();
+            int elementVal = (int)element.getValue();
             if(i == 1){rankEmbed.addField("",  "**#" + i +" :crown: <@" + userID + ">**" + sussyCoinEmote + " `$" + elementVal + "`",false); }
             else if (i == 2){rankEmbed.addField("",  "**#" + i +" :second_place:  <@" + userID + ">**\t\t" + sussyCoinEmote + " `$" + elementVal + "`",false); }
             else if (i == 3){rankEmbed.addField("",  "**#" + i +" :third_place:  <@" + userID + ">**\t\t" + sussyCoinEmote + " `$" + elementVal + "`",false); }

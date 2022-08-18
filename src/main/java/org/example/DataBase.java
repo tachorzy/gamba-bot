@@ -49,8 +49,8 @@ public class DataBase {
         return userInfo != null;
     }
     //returns the top 10 richest users
-    public LinkedHashMap<String,String> findTopUsers(){
-        LinkedHashMap<String, String> rosterTable = new LinkedHashMap<String, String>();
+    public LinkedHashMap<String,Integer> findTopUsers(){
+        LinkedHashMap<String, Integer> rosterTable = new LinkedHashMap<>();
 
         FindIterable<Document> iterDoc = collectionUser.find().sort(Sorts.descending("credits"));
         Iterator iteratorCursor = iterDoc.iterator();
@@ -64,7 +64,7 @@ public class DataBase {
                     (String)currentDoc.get("discordid"),
                     //value
                     //(String)currentDoc.get("credits")
-                    currentDoc.get("credits").toString() //uncomment after changing all credits in the db to ints
+                    Integer.parseInt(currentDoc.get("credits").toString()) //uncomment after changing all credits in the db to ints
             );
         }
         return rosterTable;
@@ -135,7 +135,7 @@ public class DataBase {
     }
 
     //allows moderators to add a new command into the the database collection  which can then be purchased by users in discord channel
-    public void insertCommand(String commandName,String url, String type, String cost){
+    public void insertCommand(String commandName,String url, String type, int cost){
         Document documentCom = new Document();
         documentCom.append("command",commandName);
         documentCom.append("url",url);
@@ -202,7 +202,7 @@ public class DataBase {
     }
 
     //allows moderators to add a new command into the the database collection  which can then be purchased by users in discord channel
-    public void insertBanner(String bannerName,String url, String type, String cost){
+    public void insertBanner(String bannerName,String url, String type, int cost){
         Document documentBanner = new Document();
         documentBanner.append("command",bannerName);
         documentBanner.append("url",url);
