@@ -47,7 +47,7 @@ public class Help extends ListenerAdapter {
     public ArrayList<String> regularCommandNames = new ArrayList<>(Arrays.asList("creditcard", "help", "buy",
             "signup", "shop", "sample", "top", "beg", "gift"));
     public ArrayList<String> gameCommandNames = new ArrayList<>(Arrays.asList("coinflip", "diceroll", "slots", "fish", "jackpotsize", "spinwheel"));
-    public ArrayList<String> badgeCommandNames = new ArrayList<>(Arrays.asList("badgeshop", "commandshop", "bannershop", "equipbadge", "unequipbadge", "clearbadges", "inventory", "commandinventory", "wipeinventory"));
+    public ArrayList<String> badgeCommandNames = new ArrayList<>(Arrays.asList("badgeshop", "commandshop", "bannershop", "equipbadge", "unequipbadge", "clearbadges","equipbanner","unequipbanner", "inventory", "commandinventory", "wipeinventory"));
     public ArrayList<String> modCommandNames = new ArrayList<>(Arrays.asList("addcommand","addbanner", "resetshop", "ban"));
 
     //we'll use this to keep track of the current pageNumber
@@ -96,7 +96,9 @@ public class Help extends ListenerAdapter {
         gameCommandTable.put("spinwheel", new ArrayList<>(Arrays.asList(":ferris_wheel:", "Initial Jackpot Value: " + jackpotWheelObject.getJackpotVal() + "\nCost per spin: " + jackpotWheelObject.requestAmount + " \n EX: " + PREFIX + "spinwheel")));
 
         badgeCommandTable.put("equipbadge", new ArrayList<>(Arrays.asList(":credit_card:", "equips a badge that you have in your inventory but not displayed on your credit card. \nEX: " + PREFIX + "equipbadge CodeCoogs")));
-        badgeCommandTable.put("unequipbadge", new ArrayList<>(Arrays.asList(":credit_card:", "unequips a badge that is displayed on your credit card. \nEX: " + PREFIX + "unequipbadge CodeCoogs")));
+        badgeCommandTable.put("unequipbadge", new ArrayList<>(Arrays.asList(":credit_card:", "equips a badge that you have in your inventory but not displayed on your credit card. \nEX: " + PREFIX + "unequipbadge CodeCoogs")));
+        badgeCommandTable.put("equipbanner", new ArrayList<>(Arrays.asList(":calling:", "equips banner that you have in your inventory but not displayed on your credit card. \nEX: " + PREFIX + "equipbanner yoru")));
+        badgeCommandTable.put("unequipbanner", new ArrayList<>(Arrays.asList(":iphone:", "unequips banner that you have in your inventory but not displayed on your credit card. \nEX: " + PREFIX + "unequipbanner yoru")));
         badgeCommandTable.put("clearbadges", new ArrayList<>(Arrays.asList(":recycle:", "wipes your credit card of badges, but keeps them in your inventory " + "\nEX: " + PREFIX + "clearbadges ")));
         badgeCommandTable.put("inventory", new ArrayList<>(Arrays.asList(boxEmote, " displays your inventory of badges\nEX: " + PREFIX + "inventory ")));
         badgeCommandTable.put("commandinventory", new ArrayList<>(Arrays.asList(bookEmote, " displays your inventory of commands\nEX: " + PREFIX + "commandinventory ")));
@@ -104,6 +106,7 @@ public class Help extends ListenerAdapter {
         badgeCommandTable.put("badgeshop", new ArrayList<>(Arrays.asList(pepeDS, "Shows shop for credit card badges \nEX: " + PREFIX + "badgeshop")));
         badgeCommandTable.put("bannershop", new ArrayList<>(Arrays.asList(":triangular_flag_on_post:", "opens up banner shop \nEX: " + PREFIX + "bannershop")));
         badgeCommandTable.put("commandshop", new ArrayList<>(Arrays.asList(":tada:", "opens up commands shop \nEX: " + PREFIX + "commandshop")));
+
     }
 
     public EmbedBuilder buildEmbedList(EmbedBuilder embed,ArrayList<String> commandNames,HashMap<String,ArrayList<String>> commandTable, String embedName){

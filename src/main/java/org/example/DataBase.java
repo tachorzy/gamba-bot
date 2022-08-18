@@ -255,13 +255,15 @@ public class DataBase {
     }
 
     //unequips a badge from the user's badge slots
-    public void unequipBanner(String userID) {
+    public Boolean unequipBanner(String userID) {
         Document userInfo = collectionUser.find(new Document("discordid",userID)).first();
+        if(((String) userInfo.get("bannerslot")).isEmpty()){ return false; }
         if(userInfo != null) {
             Bson updatedValue = new Document("bannerslot", "");
             Bson updatedOperation = new Document("$set", updatedValue); //pull operation removes the badge from list
             collectionUser.updateOne(userInfo, updatedOperation);
         }
+        return true;
     }
 
     //return true if user is mod

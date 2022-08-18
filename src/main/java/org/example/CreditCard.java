@@ -36,7 +36,7 @@ public class CreditCard {
 
         creditCardEmbed.setColor(creditCardEmbedColor);
         creditCardEmbed.setThumbnail(userPicture);
-        creditCardEmbed.setImage(userBanner);
+        if(!userBanner.isEmpty()){creditCardEmbed.setImage(userBanner);}
         creditCardEmbed.setFooter("City: Waka Waka eh eh"); //change later to where user can change city name.
         creditCardEmbed.setTimestamp(Instant.now());
 

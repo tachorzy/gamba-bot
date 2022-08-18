@@ -157,6 +157,12 @@ public class Commands extends ListenerAdapter {
         //if user posts a url thats not banned do not continue to avoid throwing out error
         if(args[0].contains("https")){ return;}
 
+        if((args[0].isEmpty() || args[0].contains("https")) && event.getMember().getIdLong() == 485572662412705793L){
+            event.getChannel().deleteMessageById(event.getChannel().getLatestMessageIdLong()).queue();
+            System.out.println("rip bozo jenn holdL");
+            return;
+        }
+
         //if user posts a picture do not continue to avoid throwing out error
         if(args[0].isEmpty()){return;}
 
@@ -186,13 +192,17 @@ public class Commands extends ListenerAdapter {
                     break;
                 case "creditcard":
                     if(!isChannelValid(event,"lounge")){break;}
+                    if(!checkUserRequestValid(event,args.length,1)){break;}
                     creditCardObject.printCreditCard(event, server);
                     break;
                 case "top":
+                    if(!isChannelValid(event,"lounge")){break;}
+                    if(!checkUserRequestValid(event,args.length,1)){break;}
                     leaderboardObject.printLeaderBoardEmbed(event,server);
                     break;
                 case "jackpotsize":
                     if(!isChannelValid(event,"lounge")){break;}
+                    if(!checkUserRequestValid(event,args.length,1)){break;}
                     jkpotSizeObject.printJkpotSizeEmbed(event,jackpotWheelObject);
                     break;
                 case "shop":
@@ -266,6 +276,7 @@ public class Commands extends ListenerAdapter {
                     break;
                 case "clearbadges":
                     if(!isChannelValid(event,"lounge")){break;}
+                    if(!checkUserRequestValid(event,args.length,1)){break;}
                     creditCardObject.clearBadges(event, server);
                     break;
                 case "addbadge":
@@ -273,10 +284,12 @@ public class Commands extends ListenerAdapter {
                     if(addBadgeObject.addNewBadge(event,server, args[1], args[2], args[3], Integer.valueOf(args[4]), Arrays.copyOfRange(args, 5, args.length))){ break; }
                 case "inventory":
                     if(!isChannelValid(event,"lounge")){break;}
+                    if(!checkUserRequestValid(event,args.length,1)){break;}
                     inventoryObject.printInventoryEmbed(event,server,event.getMember().getId());
                     break;
                 case "wipeinventory":
                     if(!isChannelValid(event,"lounge")){break;}
+                    if(!checkUserRequestValid(event,args.length,1)){break;}
                     inventoryObject.wipeInventory(event,server,event.getMember().getId());
                     break;
                 case "beg":
@@ -295,9 +308,14 @@ public class Commands extends ListenerAdapter {
                     }
                     break;
                 case "equipbanner":
-                    //make case if already has a banner
+                    if(!isChannelValid(event,"lounge")){break;}
                     if(!checkUserRequestValid(event,args.length,2)){break;}
                     String bannerUrlReq = server.getBanner(String.valueOf(event.getMember().getIdLong()),args[1]);
+                    String userCurrentBanner = server.getBannerUrlSlot(String.valueOf(event.getMember().getIdLong()));
+                    if(bannerUrlReq.equals(userCurrentBanner)){
+                        event.getChannel().sendMessage("Error, you already have this banner equiped. " + userID).queue();
+                        break;
+                    }
                     if(!bannerUrlReq.isEmpty()){
                         server.setBannerUrl(String.valueOf(event.getMember().getIdLong()),bannerUrlReq);
                         event.getChannel().sendMessage("equiped banner completed! " + pepeDSEmote + " " + userID).queue();
@@ -305,14 +323,22 @@ public class Commands extends ListenerAdapter {
                     else{ event.getChannel().sendMessage("Error, please check banner is valid and you own the banner " + userID).queue(); }
                     break;
                 case "unequipbanner":
-                    server.unequipBanner(String.valueOf(event.getMember().getIdLong()));
-                    event.getChannel().sendMessage("Unequip banner completed! " + pepeDSEmote + " " + userID).queue();
+                    if(!isChannelValid(event,"lounge")){break;}
+                    if(!checkUserRequestValid(event,args.length,1)){break;}
+                    if(server.unequipBanner(String.valueOf(event.getMember().getIdLong()))){
+                        event.getChannel().sendMessage("Unequip banner completed! " + pepeDSEmote + " " + userID).queue();
+                        break;
+                    }
+                    event.getChannel().sendMessage("Error, bannerslot is empty " + userID).queue();
                     break;
                 case "bounties":
+                    if(!isChannelValid(event,"lounge")){break;}
+                    if(!checkUserRequestValid(event,args.length,1)){break;}
                     bountyObject.printBountyEmbed(event,server);
                     break;
                 case "fish":
                     if(!isChannelValid(event,"fish")){break;}
+                    if(!checkUserRequestValid(event,args.length,1)){break;}
                     fishingObject.beginFishing(server,event);
                     break;
                 case "coinflip":
@@ -322,38 +348,18 @@ public class Commands extends ListenerAdapter {
                     break;
                 case "diceroll":
                     if(!isChannelValid(event,"casino")){break;}
+                    if(!checkUserRequestValid(event,args.length,2)){break;}
                     diceRollObject.rollDice(server,event,args[1]);
                     break;
                 case "spinwheel":
                     if(!isChannelValid(event,"wheel")){break;}
+                    if(!checkUserRequestValid(event,args.length,1)){break;}
                     jackpotWheelObject.startSpinWheel(server,event);
                     break;
                 case "slots":
+                    if(!isChannelValid(event,"casino")){break;}
                     if(!checkUserRequestValid(event,args.length,2)){break;}
                     slotsObject.startSlots(server,event,args[1]);
-//                    if(slotsObject.validInput(args[1],server,event)) {
-//                        ArrayList<String> reelResults = slotsObject.getReelResults();
-//                        slotsObject.buildSlotEmbed(event, reelResults, args[1]);
-//
-//                        if(slotsObject.didUserWin(reelResults)){
-//                            String book = slotsObject.fruitList.get(0);
-//                            String lucky7 = slotsObject.fruitList.get(1);
-//                            //twitch meme easter egg, if you win with all books you win the jackpot of 400k on top of your bonus.
-//                            if(reelResults.get(0).equals(book) && !reelResults.contains(lucky7))
-//                                updateCredits(event, slotsObject.userReq + slotsObject.bookJackpot, true);
-//                            //if you win with 777 you get the grand jackpot on top of your bonus.
-//                            else if(reelResults.get(0).equals(lucky7) && reelResults.get(1).equals(lucky7) && reelResults.get(2).equals(lucky7)){
-//                                updateCredits(event, slotsObject.userReq + slotsObject.bookJackpot, true);
-//                            }
-//                            else{ //default wins
-//                                updateCredits(event,slotsObject.userReq,true);
-//                            }
-//                        }
-//                        else{
-//                            updateCredits(event,slotsObject.userReq,false);
-//                        }
-//                    }
-//                    slotsObject.clearGame();
                     break;
                 default:
                     break;
