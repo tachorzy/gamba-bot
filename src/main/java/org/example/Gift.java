@@ -4,7 +4,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class Gift {
     //updates request recipient users credits
-    public boolean updateRecipientCredits(DataBase server,MessageReceivedEvent event, Long userID, Integer userReq ){
+    public boolean updateRecipientCredits(DataBase server,MessageReceivedEvent event, Long userID, int userReq ){
         String user =  "<@" +event.getMember().getId() + ">";
 
         if(!server.findUser(String.valueOf(userID))){
@@ -12,9 +12,9 @@ public class Gift {
             return false;
         }
 
-        int creditVal = Integer.parseInt(server.getUserCredits(String.valueOf(userID)));
+        int creditVal = server.getUserCredits(String.valueOf(userID));
         creditVal += userReq;
-        server.updateUserCredits(String.valueOf(userID),String.valueOf(creditVal));
+        server.updateUserCredits(String.valueOf(userID),creditVal);
 
         return true;
     }
@@ -23,7 +23,7 @@ public class Gift {
     public Boolean removeGifterCredits(DataBase server,MessageReceivedEvent event, Integer userReq ){
         String user =  "<@" +event.getMember().getId() + ">";
 
-        int creditVal = Integer.parseInt(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
+        int creditVal = server.getUserCredits(String.valueOf(event.getMember().getIdLong()));
 
         //check if user has enough funds
         if (userReq > creditVal) {
@@ -36,7 +36,7 @@ public class Gift {
         }
         creditVal -= userReq;
 
-        server.updateUserCredits(String.valueOf(event.getMember().getIdLong()),String.valueOf(creditVal));
+        server.updateUserCredits(String.valueOf(event.getMember().getIdLong()),creditVal);
 
         //return true if deduction was sucessful
         return true;
@@ -71,7 +71,7 @@ public class Gift {
 
         //check the amount here
         if(removeGifterCredits(server,event,Integer.valueOf(giftAmount))){
-            return updateRecipientCredits(server, event, convertedUserID, Integer.valueOf(giftAmount));
+            return updateRecipientCredits(server, event, convertedUserID, Integer.parseInt(giftAmount));
         }
         return false;
     }

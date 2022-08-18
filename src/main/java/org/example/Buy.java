@@ -1,9 +1,9 @@
 package org.example;
 
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
+import javax.xml.crypto.Data;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,18 +28,21 @@ public class Buy {
         String userTag =  "<@" + event.getMember().getId() + ">";
         String userID = String.valueOf(event.getMember().getIdLong());
 
+        //if user did not request a valid command notify user
         if (!commandList.containsKey(itemRequest)) {
             event.getChannel().sendMessage(errorEmote + invalidPurchaseMessage + userTag).queue();
             return;
         }
-
+        //if user already has command notify user
         if(server.getCommandPermission(userID, itemRequest)){
             event.getChannel().sendMessage("User has already bought command " + userTag).queue();
             return;
         }
 
-        int request =  Integer.valueOf(commandList.get(itemRequest).get(3));
+        //get the amount the command cost
+        int request =  Integer.valueOf(commandList.get(itemRequest).get(1));
 
+        //if user balance is lower than amount notify user else update user credits and add command permission
         if (request > balance) { event.getChannel().sendMessage(errorEmote + insufficientFundsMessage + userTag).queue(); }
         else {
             updateCredits(server,event,request,false);
@@ -48,8 +51,51 @@ public class Buy {
         }
     }
 
+    public void buyBanner(MessageReceivedEvent event, DataBase server, HashMap<String,List<String>> bannerList,String itemRequest, int balance){
+        String userTag =  "<@" + event.getMember().getId() + ">";
+        String userID = String.valueOf(event.getMember().getIdLong());
+
+        //if user did not request a valid command notify user
+        if (!bannerList.containsKey(itemRequest)) {
+            event.getChannel().sendMessage(errorEmote + invalidPurchaseMessage + userTag).queue();
+            return;
+        }
+
+        if(!server.getBanner(String.valueOf(event.getMember().getIdLong()),itemRequest).isEmpty()){
+            event.getChannel().sendMessage("User has already bought banner " + userTag).queue();
+            return;
+        }
+
+        int request =  Integer.parseInt(bannerList.get(itemRequest).get(1));
+        if (request > balance) {
+            event.getChannel().sendMessage(errorEmote + "Error Insufficient Funds " + userID).queue();
+            return;
+        }
+        else {
+            updateCredits(server,event,request,false);
+            server.addBannerPermission(String.valueOf(event.getMember().getIdLong()),itemRequest + " " +bannerList.get(itemRequest).get(0));
+            event.getChannel().sendMessage("Purchase sucessfully completed! " + pepeDS + " " + userTag).queue();
+        }
+
+        //if empty for banner slot
+        if(server.getBannerUrlSlot(String.valueOf(event.getMember().getIdLong())).isEmpty()) {
+            server.setBannerUrl(String.valueOf(event.getMember().getIdLong()),bannerList.get(itemRequest).get(0));
+        }
+    }
+
+    //update user credits
+    public void updateCredits(DataBase server, MessageReceivedEvent event, int userReq, boolean addCredit){
+        int creditVal = server.getUserCredits(String.valueOf(event.getMember().getIdLong()));
+
+        //if addCredit is true add to credits else subtract
+        if(addCredit){ creditVal += userReq; }
+        else{ creditVal -= userReq; }
+
+        server.updateUserCredits(String.valueOf(event.getMember().getIdLong()),creditVal);
+    }
+
+    //buy buy if user command is valid and user has money and add into their badge inventory
     public void buyBadge(MessageReceivedEvent event, DataBase server, LinkedHashMap<String,List<String>> badgeList, String itemRequest, int balance){
-        System.out.println("HELLOOOOOOOOOOOOOOOOOO BUYIN A BADGE " + itemRequest);
         String userTag =  "<@" + event.getMember().getId() + ">";
         String userID = String.valueOf(event.getMember().getIdLong());
 
@@ -61,7 +107,6 @@ public class Buy {
 
         //getting the badge's cost from the badge hash map
         int request =  Integer.parseInt(badgeList.get(itemRequest).get(4));
-
         if (request > balance) {
             event.getChannel().sendMessage(errorEmote + insufficientFundsMessage + userID).queue();
             return;
@@ -70,10 +115,11 @@ public class Buy {
         List<String> badgeDetails = badgeList.get(itemRequest);
         String requestedBadge = badgeBuilderObject.buildBadge(badgeDetails, itemRequest);
 
-        //the arraylist of the user's badges, I'm using an arraylist over a hashmap because I like having the order of the badges preserved.
+        //the arraylist of the user's badges, I'm using an arraylist over a hashmap for ordering badges by prices
         ArrayList<String> userBadges = server.getUserSlotBadges(event.getMember().getId());
         HashMap<String, String> userInventory = server.getUserBadgeInventory(event.getMember().getId());
 
+        //if badge exist already notify user
         if(userBadges.contains(requestedBadge) || userInventory.containsKey(itemRequest)) {
             event.getChannel().sendMessage(errorEmote + duplicateItemMessage + userTag).queue();
             return;
@@ -85,37 +131,21 @@ public class Buy {
         server.addBadgeToInventory(userID,itemRequest, requestedBadge);
         event.getChannel().sendMessage(badgeToInvenMessage + boxEmote).queue();
 
+        //if user badge size is equal or greater than 4 notify user to replace badge slots
         if(userBadges.size() >= 4){ //checking if user has an available badge slot.
             msgEmbed.setColor(Color.WHITE);
             msgEmbed.setTitle(errorEmote + maxBadgesMessage);
             msgEmbed.setDescription(replaceBadgeMessage);
-
             String userBadgeSlots = "《 " + userBadges.get(0) + " | " + userBadges.get(1) + " | " + userBadges.get(2) + " | "+ userBadges.get(3) + " 》";
             msgEmbed.addField("Your Current Badge Slots:",userBadgeSlots, false);
-
             event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
             msgEmbed.clear();
             return;
         }
         server.equipBadge(userID, requestedBadge);
         event.getChannel().sendMessage("Your new badge has been added to your credit card, enjoy!!! " + pepeDS + " " + userTag).queue();
-
     }
 
     public void buyBanner(MessageReceivedEvent event, DataBase server, LinkedHashMap<String, String> bannerList,String itemRequest, int balance){
-
-
     }
-
-    public void updateCredits(DataBase server, MessageReceivedEvent event, int userReq, boolean addCredit){
-        int creditVal = Integer.parseInt(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
-
-        //if addCredit is true add to credits else subtract
-        if(addCredit){ creditVal += userReq; }
-        else{ creditVal -= userReq; }
-
-        server.updateUserCredits(String.valueOf(event.getMember().getIdLong()),String.valueOf(creditVal));
-    }
-
-
 }

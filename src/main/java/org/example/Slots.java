@@ -1,7 +1,6 @@
 package org.example;
 
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.awt.*;
@@ -16,16 +15,17 @@ import java.util.Random;
  *  (2) Land at least one lucky 7.
  * Bonus multipliers are applied to all wins,
 */
+
 public class Slots {
     public EmbedBuilder slotEmbed = new EmbedBuilder();
     public Color slotEmbedColor = Color.ORANGE;
     public String slotEmbedThumbnail = "https://img1.picmix.com/output/stamp/normal/4/1/4/3/1323414_5774d.gif";
     public String tradeMark = "© 2022 Sussy Inc. All Rights Reserved.";
-
     public String bonusVal;
+
     public int userReq = 0;
     public int userBalance = 0;
-    public int slotGameMinAmount = 250;
+    public int slotGameMinAmount = 1500;
     public int slotGameMaxAmount = 20000;
 
     String moneyCash = "<a:moneycash:1000225442260861018>";
@@ -34,16 +34,15 @@ public class Slots {
     String lucky7Emote = "<:slot7:1007231327843659846>";
     String errorEmote = "<a:exclamationmark:1000459825722957905>";
     String squadHips = "<a:squadHips:1007265018661851206>";
-
     String inputErrorMsg = errorEmote + "Error: please specify a valid amount you would like to bet range " + slotGameMinAmount + "-" + slotGameMaxAmount;
     String invalidInputMsg = "Error: please specify a valid amount you would like to bet range 500-2000";
     String embedDividerText = "--------------------------------";
+
     //two jackpots, small chance either win 400k from hitting 3 books, or the grand jackpot from triple 7s
     int bookJackpot = 400000;
-    int grandJackpot = 700000;
+    int grandJackpot = 777000;
     ArrayList<String> fruitList = new ArrayList<String>();
-    //so far this will be 1-dimensional, maybe in the future we can update it to a 2D list
-    ArrayList<String> reels = new ArrayList<String>(3);
+    ArrayList<String> reels = new ArrayList<String>(3);     //so far this will be 1-dimensional, maybe in the future we can update it to a 2D list
 
     public void clearGame(){
         bonusVal = "";
@@ -64,7 +63,6 @@ public class Slots {
         fruitList.add("<:Diamond:1002340462721515630>");
         fruitList.add("<:Melon:1007288477290868807>");
         fruitList.add("<:Salmonberry:1007327997818314803>");
-
     }
 
     //there are 3 reels in our slot machine, we fill each one with a random emote from the fruitList
@@ -77,17 +75,17 @@ public class Slots {
         return reels;
     }
 
+    //can user a or operator to simplify
     public boolean didUserWin(ArrayList<String> reelResults){
-        if(reelResults.get(0) == reelResults.get(1) && reelResults.get(1) == reelResults.get(2))
-            return true;
-        else if(reelResults.contains(fruitList.get(1)))
-            return true;
+        if(reelResults.get(0) == reelResults.get(1) && reelResults.get(1) == reelResults.get(2)){            return true;
+        }
+        else if(reelResults.contains(fruitList.get(1))){return true;}
         return false;
     }
 
     public String calculateMultiplier(){
         //calculate multiplier
-        int multiplier = new Random().nextInt(8)+1;
+        int multiplier = new Random().nextInt(7)+1;
         switch(multiplier){
             case 1:
                 userReq += userReq * 1;
@@ -103,7 +101,7 @@ public class Slots {
                 break;
             case 4:
                 userReq += userReq * 3;
-                bonusVal = "3.00%";
+                bonusVal = "300%";
                 break;
             case 5:
                 userReq += userReq * 4;
@@ -117,10 +115,10 @@ public class Slots {
                 userReq += userReq * 5.5;
                 bonusVal = "550%";
                 break;
-            case 8:
-                userReq += userReq * 6;
-                bonusVal = "600%";
-                break;
+//            case 8:
+//                userReq += userReq * 6;
+//                bonusVal = "600%";
+//                break;
             /*
             case 9: //commented out for balancing
                 userReq += userReq * 10;
@@ -136,6 +134,8 @@ public class Slots {
 
     //validate user input before calculating the winner
     public boolean validInput(String userBetReq, DataBase server, MessageReceivedEvent event){
+        String userTag =  "<@" +event.getMember().getId() + ">";
+
         try{
             //check users requests if its more than needed then do not allow them to gamble else allow
             int request = Integer.valueOf(userBetReq);
@@ -143,12 +143,12 @@ public class Slots {
 
             //handle if user requests less than 0 throw error
             if (request < slotGameMinAmount  ||  request > slotGameMaxAmount){
-                event.getChannel().sendMessage(inputErrorMsg).queue();
+                event.getChannel().sendMessage(inputErrorMsg + userTag).queue();
                 return false;
             }
             //check if user has enough funds
             else if(request > balance){
-                event.getChannel().sendMessage(errorEmote + "Error Insufficient Funds").queue();
+                event.getChannel().sendMessage(errorEmote + "Error Insufficient Funds" + userTag).queue();
                 return false;
             }
 
@@ -209,6 +209,44 @@ public class Slots {
                 .queue();
         slotEmbed.clear();
     }
+
+    public void updateCredits(DataBase server, MessageReceivedEvent event, int userReq, boolean addCredit){
+        int creditVal = server.getUserCredits(String.valueOf(event.getMember().getIdLong()));
+
+        //if addCredit is true add to credits else subtract
+        if(addCredit){ creditVal += userReq; }
+        else{ creditVal -= userReq; }
+
+        server.updateUserCredits(String.valueOf(event.getMember().getIdLong()),creditVal);
+    }
+    public void startSlots(DataBase server, MessageReceivedEvent event, String bet){
+        if(validInput(bet,server,event)) {
+            ArrayList<String> reelResults = getReelResults();
+            buildSlotEmbed(event, reelResults, bet);
+
+            if(didUserWin(reelResults)){
+                String book = fruitList.get(0);
+                String lucky7 = fruitList.get(1);
+                //twitch meme easter egg, if you win with all books you win the jackpot of 400k on top of your bonus.
+                if(reelResults.get(0).equals(book) && !reelResults.contains(lucky7))
+                    updateCredits(server, event,userReq + bookJackpot, true);
+                    //if you win with 777 you get the grand jackpot on top of your bonus.
+                else if(reelResults.get(0).equals(lucky7) && reelResults.get(1).equals(lucky7) && reelResults.get(2).equals(lucky7)){
+                    updateCredits(server, event, userReq + bookJackpot, true);
+                }
+                else{ //default wins
+                    updateCredits(server, event,userReq,true);
+                }
+            }
+            else{
+                updateCredits(server, event,userReq,false);
+            }
+        }
+        clearGame();
+    }
+
+
+
 
 
 }

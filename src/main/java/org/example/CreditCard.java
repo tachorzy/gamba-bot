@@ -20,7 +20,7 @@ public class CreditCard {
     public String replaceBadgeMessage = "In order to equip your new badge, please choose a badge that you'd like to replace from your card.\nUse command: **&replacebadge 'oldbadge' 'newbadge**";
     public String badgeNotFound = "Error user requested badge does not exist please check your request. use &help for more info";
     public String badgeNotOwned = "Error user made a request for a badge that they do not own in inventory. use &help for more info ";
-    public String badgeNotDisplayed = "Error user requested to a replace badge that they don't have displayed. use &help for more info ";
+    public String badgeNotDisplayed = "Error user requested to a replace or unequip a badge that they don't have displayed. use &help for more info ";
     public String badgeAlreadyDisplayed = "You already have this badge displayed. ";
     public String maxBadgesMessage = "You currently have the maximum amount of badges that can be equipped at a time. ";
     public String successfulReplacementMessage = "The Replacement was successful! Your old badge is safely stored in your inventory. ";
@@ -30,14 +30,13 @@ public class CreditCard {
     public String sussyCoinEmote = "<a:SussyCoin:1004568859648466974>";
 
     //creates embed of user information such as credits, badges etc
-    public void createCreditCardEmbed(String userNickname, String userName, String userPicture, String userID, String userCredits, ArrayList<String> userBadges) {
-        if (userNickname != null)
-            creditCardEmbed.setTitle(userNickname + " [" + userName + "]");
-        else
-            creditCardEmbed.setTitle(userName);
+    public void createCreditCardEmbed(String userNickname, String userName, String userPicture, String userID, String userCredits, ArrayList<String> userBadges,String userBanner) {
+        if (userNickname != null){ creditCardEmbed.setTitle(userNickname + " [" + userName + "]");}
+        else{ creditCardEmbed.setTitle(userName);}
 
         creditCardEmbed.setColor(creditCardEmbedColor);
         creditCardEmbed.setThumbnail(userPicture);
+        creditCardEmbed.setImage(userBanner);
         creditCardEmbed.setFooter("City: Waka Waka eh eh"); //change later to where user can change city name.
         creditCardEmbed.setTimestamp(Instant.now());
 
@@ -54,13 +53,15 @@ public class CreditCard {
     //obtain user info and call build embed after that print to discord and clear the embed
     public void printCreditCard(MessageReceivedEvent event, DataBase server) {
         ArrayList<String> userBadges = server.getUserSlotBadges(String.valueOf(event.getAuthor().getIdLong()));
-        String userCredits = server.getUserCredits(String.valueOf(event.getAuthor().getIdLong()));
+        String userCredits = String.valueOf(server.getUserCredits(String.valueOf(event.getAuthor().getIdLong())));
         String userID = event.getAuthor().getId();
         String userPicture = event.getAuthor().getAvatarUrl();
         String userNickname = event.getMember().getNickname();
         String userName = event.getAuthor().getAsTag();
+        String userBanner = server.getBannerUrlSlot(String.valueOf(event.getAuthor().getIdLong()));
 
-        createCreditCardEmbed(userNickname, userName, userPicture, userID, userCredits, userBadges);
+
+        createCreditCardEmbed(userNickname, userName, userPicture, userID, userCredits, userBadges,userBanner);
         event.getChannel().sendMessageEmbeds(creditCardEmbed.build()).queue();
         creditCardEmbed.clear();
     }
@@ -119,26 +120,50 @@ public class CreditCard {
             return;
         }
 
+        List<String> reqBadgeDetails = badgeList.get(badgeName);
+        String reqBadge = badgeBuilderObject.buildBadge(reqBadgeDetails, badgeName);
+
+        if (userBadges.contains(reqBadge)){
+            event.getChannel().sendMessage(errorEmote + badgeAlreadyDisplayed + userTag).queue();
+            return;
+        }
         //checking if you have an available badge slot. The max is 4 badges per credit card.
         if (userBadges.size() >= 4) {
             String userBadgeSlots = "《 " + userBadges.get(0) + " | " + userBadges.get(1) + " | " + userBadges.get(2) + " | " + userBadges.get(3) + " 》";
             msgEmbed.setColor(Color.WHITE);
-            msgEmbed.setTitle(errorEmote + maxBadgesMessage + userTag);
+            msgEmbed.setTitle(errorEmote + maxBadgesMessage);
             msgEmbed.setDescription(replaceBadgeMessage);
             msgEmbed.addField("Your Current Badge Slots:", userBadgeSlots, false);
-            event.getChannel().sendMessageEmbeds(msgEmbed.build()).queue();
+            event.getChannel().sendMessageEmbeds(msgEmbed.build())
+                    .append(userTag)
+                    .queue();
             msgEmbed.clear();
+            return;
         }
         //equipping the badge, calling BadgeBuilder to put the badge in format: '<a:emote:> tagline'
         server.equipBadge(event.getMember().getId(), badgeBuilderObject.buildBadge(badgeList.get(badgeName), badgeName));
-        event.getChannel().sendMessage(badgeAddedMessage + userTag).queue();
+        event.getChannel().sendMessage(badgeAddedMessage + userTag)
+                .queue();
     }
 
     public void unequipBadge(MessageReceivedEvent event, HashMap<String, List<String>> badgeList, String badgeName, DataBase server) {
         String userTag =  "<@" +event.getMember().getId() + ">";
+        ArrayList<String> userBadges = server.getUserSlotBadges(event.getMember().getId());
+
         //if badge does not exist in the badgelist
-        if (!badgeList.containsKey(badgeName))
+        if (!badgeList.containsKey(badgeName)) {
             event.getChannel().sendMessage(errorEmote + badgeNotFound).queue();
+            return;
+        }
+
+        List<String> reqBadgeDetails = badgeList.get(badgeName);
+        String reqBadge = badgeBuilderObject.buildBadge(reqBadgeDetails, badgeName);
+
+        if(!userBadges.contains(reqBadge)) {
+            event.getChannel().sendMessage(errorEmote + badgeNotDisplayed).queue();
+            return;
+        }
+
         //unequipping the badge, calling BadgeBuilder to put the requested badge in format: '<a:emote:> tagline'
         server.unequipBadge(event.getMember().getId(), badgeBuilderObject.buildBadge(badgeList.get(badgeName), badgeName));
         event.getChannel().sendMessage(badgeUnequipMessage + userTag).queue();

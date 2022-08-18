@@ -16,17 +16,18 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class BannerShop extends ListenerAdapter {
+public class CommandShop extends ListenerAdapter {
     public EmbedBuilder shopEmbed = new EmbedBuilder();
     public Color shopEmbedColor = Color.MAGENTA;
     public String stackCashEmote = "<:cash:1000666403675840572>";
-    public String pepeEmote = "<a:pepeMEX:1000825833335828620>";
+    public String moneyCashEmote = "<a:moneycash:1000225442260861018>";
     public String tradeMark = "© 2022 Sussy Inc. All Rights Reserved.";
-    public String shopEmbedImage = "https://cdn.discordapp.com/attachments/954548409396785162/1009383688603177071/unknown.png";
-    public String shopEmbedThumbnail = "https://c.tenor.com/YlBfgZ3_INcAAAAM/cat-kitty.gif";
+    public String shopEmbedImage = "https://arc-anglerfish-arc2-prod-tronc.s3.amazonaws.com/public/YPZFICVQMRGXPMWDR2HVEEMTNA.jpg";
+    public String shopEmbedThumbnail = "https://c.tenor.com/rgNhzkA41qIAAAAM/catjam-cat-jamming.gif";
+    public String shopEmbedDescription = "Shop at Sussy's Megacenter today for Every Day Low Prices! <a:coinbag:1000231940793843822>\n";
 
-    public LinkedList<MessageEmbed> bannerShopEmbedPages = new LinkedList<>();
-    public static HashMap<String, java.util.List<String>> bannerList;
+    public LinkedList<MessageEmbed> commandShopEmbedPages = new LinkedList<>();
+    public static HashMap<String, java.util.List<String>> commandList;
 
     ActionRow defActionRow = ActionRow.of(
             net.dv8tion.jda.api.interactions.components.buttons.Button.primary("page1", "1"),
@@ -47,36 +48,33 @@ public class BannerShop extends ListenerAdapter {
             Button.danger("exit", "Exit ✖")
     );
 
+
     //create shop embed and return it
-    public void createShopEmbed(HashMap<String, java.util.List<String>> bannerList) {
-        shopEmbed.setTitle(pepeEmote + "SUSSY'S BANNERSHOP™" + pepeEmote);
+    public void createShopEmbed(HashMap<String, List<String>> commandList) {
+        shopEmbed.setTitle(moneyCashEmote + "SUSSY'S ONE STOP COMMAND SHOP™" + moneyCashEmote);
+        shopEmbed.setDescription(shopEmbedDescription);
         shopEmbed.setThumbnail(shopEmbedThumbnail);
         shopEmbed.setImage(shopEmbedImage);
-        if (bannerList == null){return;}
-        //iterate through map and get price of each banner
-        for (Map.Entry<String, java.util.List<String>> stringListEntry : bannerList.entrySet()) {
-            java.util.List<String> elementVal = (java.util.List<String>) ((Map.Entry) stringListEntry).getValue();
+        for (Map.Entry<String, List<String>> stringListEntry : commandList.entrySet()) {
+            List<String> elementVal = (List<String>) ((Map.Entry) stringListEntry).getValue();
             shopEmbed.addField((String) ((Map.Entry) stringListEntry).getKey(), stackCashEmote + " Price: $" + elementVal.get(1), true);
         }
         shopEmbed.setTimestamp(Instant.now());
         shopEmbed.setFooter(tradeMark);
         shopEmbed.setColor(shopEmbedColor);
         //refactor by finding a way to fix 'x' amount of items into each MessageEmbed and shove it into this linkedlist, in an efficient manner.
-        bannerShopEmbedPages.add(shopEmbed.build());
+        commandShopEmbedPages.add(shopEmbed.build());
     }
 
     //display the shop embed to user
-    public void printShopEmbed(MessageReceivedEvent event, HashMap<String, List<String>> bannerList) {
-        createShopEmbed(bannerList);
-        event.getChannel().sendMessageEmbeds(bannerShopEmbedPages.getFirst()).setActionRows(defActionRow).queue();
+    public void printShopEmbed(MessageReceivedEvent event, HashMap<String, List<String>> commandList) {
+        createShopEmbed(commandList);
+        event.getChannel().sendMessageEmbeds(commandShopEmbedPages.getFirst()).setActionRows(defActionRow).queue();
         shopEmbed.clear();
     }
-
-
-    //Whenever a click occurs we need to print a specific page after the pageIndex (local version of pageNumber) has been incremented/decremented
-    public void printBadgeShopEmbedPage(ButtonInteractionEvent event, int index){
+    public void printShopEmbedPages(ButtonInteractionEvent event, int index) {
         //if empty do not print
-        if(bannerShopEmbedPages.isEmpty()) return;
+        if(commandShopEmbedPages.isEmpty()) return;
         //defines how the button looks at the bottom what buttons are highlighted and what are grayed out
         ActionRow actionRow = defActionRow;
         switch(index){
@@ -87,27 +85,25 @@ public class BannerShop extends ListenerAdapter {
                 actionRow = thirdActionRow;
                 break;
         }
-        event.getMessage().editMessageEmbeds(bannerShopEmbedPages.get(index)).setActionRows(actionRow).queue();
+        event.getMessage().editMessageEmbeds(commandShopEmbedPages.get(index)).setActionRows(actionRow).queue();
     }
 
-    //handles button interaction and increments/decrements the pageNumber accordingly
     @Override
     public void onButtonInteraction(@NotNull ButtonInteractionEvent event){
-        //if iterator is null set iterator to the first page of the embed
+        //if iterator is null set iterator to the first page of the embed (ignore this for now, it could be a possible bug fix in the future)
         //if(iter == null){iter = badgeShopEmbedPages.listIterator(0); }
-
         //check which button id value
         switch(event.getComponentId()){
             case "page1":
-                printBadgeShopEmbedPage(event, 0);
+                printShopEmbedPages(event, 0);
                 event.deferEdit().queue();
                 break;
             case "page2":
-                printBadgeShopEmbedPage(event, 1);
+                printShopEmbedPages(event, 1);
                 event.deferEdit().queue();
                 break;
             case "page3":
-                printBadgeShopEmbedPage(event, 2);
+                printShopEmbedPages(event, 2);
                 event.deferEdit().queue();
                 break;
             case "exit":

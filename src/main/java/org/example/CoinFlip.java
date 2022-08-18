@@ -10,12 +10,12 @@ import java.util.concurrent.TimeUnit;
 
 public class CoinFlip {
     public String[] coinflipList = {"heads","tails"};
-    public List<String> coinSideName = new ArrayList<>(Arrays.asList("head", "heads", "tail", "tails"));
+    public List<String> coinSideName = new ArrayList<>(Arrays.asList("heads", "tails"));
     public String thumbnailUrl;
     public String compGuess;
     public int userReq = 0;
     public int userBalance = 0;
-    public int coinGameMinAmount = 0;
+    public int coinGameMinAmount = 1;
     public int coinGameMaxAmount = 4000;
 
     public void clearGame(){
@@ -26,14 +26,14 @@ public class CoinFlip {
     }
     //flip the coin and determine if the user won the coinflip or not
     public boolean didUserWin(String guess) {
-        int randomNum = new Random().nextInt(coinflipList.length);
 
         //do the coinflip and get result check with user
+        int randomNum = new Random().nextInt(coinflipList.length);
         compGuess = coinflipList[randomNum];
 
         //if heads use url for it vice versa
         if(compGuess.equals("heads")){ thumbnailUrl = "https://cdn.discordapp.com/attachments/954548409396785162/982469915464310834/heads.gif"; }
-        else{ thumbnailUrl = "https://cdn.discordapp.com/attachments/954548409396785162/982469939682238474/tails.gif"; }
+        else if(compGuess.equals("tails")){ thumbnailUrl = "https://cdn.discordapp.com/attachments/954548409396785162/982469939682238474/tails.gif"; }
 
         return guess.equals(compGuess);
     }
@@ -51,10 +51,10 @@ public class CoinFlip {
         try{
             //check users requests if its more than needed then do not allow them to gamble else allow
             int request =Integer.parseInt(userBetReq);
-            int balance = Integer.parseInt(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
+            int balance = server.getUserCredits(String.valueOf(event.getMember().getIdLong()));
 
             //handle if user requests less than 0 throw error
-            if (request <= coinGameMinAmount  ||  request > coinGameMaxAmount){
+            if (request < coinGameMinAmount  ||  request > coinGameMaxAmount){
                 event.getChannel().sendMessage("Error: please specify a valid amount you would like to bet range "
                         + coinGameMinAmount + "-" + coinGameMaxAmount + " use &help for more info " + user).queue();
                 return false;
@@ -77,15 +77,16 @@ public class CoinFlip {
 
         return true;
     }
+
     //updates users credits
     public void updateCredits(DataBase server ,MessageReceivedEvent event, int userReq, boolean addCredit){
-        int creditVal = Integer.parseInt(server.getUserCredits(String.valueOf(event.getMember().getIdLong())));
+        int creditVal = server.getUserCredits(String.valueOf(event.getMember().getIdLong()));
 
         //if addCredit is true add to credits else subtract
         if(addCredit){ creditVal += userReq; }
         else{ creditVal -= userReq; }
 
-        server.updateUserCredits(String.valueOf(event.getMember().getIdLong()),String.valueOf(creditVal));
+        server.updateUserCredits(String.valueOf(event.getMember().getIdLong()),creditVal);
     }
 
     public void flipCoin(DataBase server, MessageReceivedEvent event,String coinSide, String betAmount){
@@ -108,5 +109,4 @@ public class CoinFlip {
         //reset object
         clearGame();
     }
-
 }

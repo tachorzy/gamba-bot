@@ -23,13 +23,11 @@ public class Bounty {
         bountyBoardEmbed.addField("Mid-lecture Mower", "It's lecture time Hurry! Use &mow to mow Hilford's yard.\n" + stackCashEmote + " **reward:** $5,000 SussyCoin", false);
         bountyBoardEmbed.addField("High funds, High status", "Reach the top of the leaderboard.\n" + stackCashEmote + " **reward:** $10,000 SussyCoin", false);
         bountyBoardEmbed.setFooter(tradeMark);
-
     }
 
     public void printBountyEmbed(MessageReceivedEvent event, DataBase server){
         createBountyEmbed(server);
-        event.getChannel().sendMessageEmbeds(bountyBoardEmbed.build())
-                .queue();
+        event.getChannel().sendMessageEmbeds(bountyBoardEmbed.build()).queue();
+        bountyBoardEmbed.clear();
     }
-
 }

@@ -6,14 +6,13 @@ public class AddBadge {
     public String errorEmote = "<a:exclamationmark:1000459825722957905>";
     public String checkMarkEmote = "";
 
-    //public boolean addNewBadge(MessageReceivedEvent event, DataBase server, String badgeName, String badgeID, String badgeType, int badgeCost, String[] badgeTagArray){
-    //UNCOMMENT ABOVE LATER after converting db to int
+    //adds and formats badge to be stored in the database returns true if sucessful
     public boolean addNewBadge(MessageReceivedEvent event, DataBase server, String badgeName, String badgeID, String badgeType, int badgeCost, String[] badgeTagArray){
-            String user = "<@" + event.getMember().getId() + ">";
+        String user = "<@" + event.getMember().getId() + ">";
         if(server.isUserMod(String.valueOf(event.getMember().getIdLong()))){
             StringBuilder badgeTag = new StringBuilder();
 
-            //iterate through multiple arguements given and concatenate the sentance into one string
+            //iterate through multiple arguements given and concatenate the sentence into one string
             for (String s : badgeTagArray) badgeTag.append(" ").append(s);
 
             //with all info given for badge insert into the database
