@@ -41,11 +41,11 @@ public class Commands extends ListenerAdapter {
     public HashMap<String, List<String>> bannerList;
 
     //speficic channels
-    public String casinoChannelID = "1004588844475240448";
-    public String loungeChannelID = "1001755724961038396";
-    public String jackpotWheelChannelID = "1004589024998080595";
-    public String fishingChannelID = "1002048071661801563";
-    public String botChannelID = "954548409396785162";
+    ArrayList<String> casinoChannelIDTable = new ArrayList<>(Arrays.asList("1007932477056237568", "1007932515589304330", "1007932554898321458", "1008977883202584646", "1008977915729416213", "1008977938940694578"));
+    public String loungeChannelID = "1007932910734684201";
+    public String jackpotWheelChannelID = "1007933043790594068";
+    public String fishingChannelID = "1007932945224450088";
+    public String botChannelID = "1007932294213935145";
 
     public String pepeDSEmote = "<a:pepeDS:1000094640269185086>";
 
@@ -93,13 +93,14 @@ public class Commands extends ListenerAdapter {
         String userID =  "<@" + event.getMember().getId() + ">";
         String eventChannelID = event.getChannel().getId();
         String errorMessage;
-        String channelID;
+        String channelID = null;
+        ArrayList<String> channelGroups = null;
 
         if(eventChannelID.equals(botChannelID)){ return true;}
 
         switch (commandType){
             case "casino":
-                channelID = casinoChannelID;
+                channelGroups = casinoChannelIDTable;
                 errorMessage ="Please use this command in casino channel! ";
                 break;
             case "lounge":
@@ -119,6 +120,9 @@ public class Commands extends ListenerAdapter {
                 errorMessage = "Error 404 invalid channel contact mods and do not panic! ";
                 break;
         }
+
+        if(commandType.equals("casino") && channelGroups.contains(eventChannelID)){ return true; }
+
         if(!eventChannelID.equals(channelID)) {
             event.getChannel().deleteMessageById(event.getChannel().getLatestMessageIdLong()).queue();
             event.getChannel().sendMessage(errorMessage + " " + userID).queue();

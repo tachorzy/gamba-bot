@@ -27,8 +27,9 @@ public class SignUp {
     //overidden function that is used in the About class on button interaction, where the MessageReceivedEvent is unavailable so instead we pass the channelID
     public void signupUser(MessageChannel eventChannel, boolean userExist,DataBase server, long userID, ButtonInteractionEvent event){
         if(!userExist){
+            String userTag =  "<@" + event.getMember().getId() + ">";
             server.insertUser(String.valueOf(userID));
-            String message = signupEmote+"**WELCOME!** <@" + eventChannel.getJDA().getSelfUser().getIdLong() + ">" + " has bestowed you the lifestyle of Gamba Addiction" + signupEmote;
+            String message = signupEmote+"**WELCOME!** <@" + eventChannel.getJDA().getSelfUser().getIdLong() + ">" + " has bestowed you the lifestyle of Gamba Addiction -" + userTag + " " + signupEmote;
             eventChannel.sendMessage(message).queue();
             eventChannel.sendMessage(signupImage).queue();
         }
