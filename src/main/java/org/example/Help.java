@@ -46,7 +46,7 @@ public class Help extends ListenerAdapter {
     //Note when you add to hashmap, you need to add command to arraylist below also
     public ArrayList<String> regularCommandNames = new ArrayList<>(Arrays.asList("creditcard", "help", "buy",
             "signup", "shop", "sample", "top", "beg", "gift"));
-    public ArrayList<String> gameCommandNames = new ArrayList<>(Arrays.asList("coinflip", "diceroll", "slots", "fish", "jackpotsize", "spinwheel"));
+    public ArrayList<String> gameCommandNames = new ArrayList<>(Arrays.asList("coinflip", "diceroll", "slots", "fish", "jackpotsize", "spinwheel","fatewheel"));
     public ArrayList<String> badgeCommandNames = new ArrayList<>(Arrays.asList("badgeshop", "commandshop", "bannershop", "equipbadge", "unequipbadge", "clearbadges","equipbanner","unequipbanner", "inventory", "commandinventory", "wipeinventory"));
     public ArrayList<String> modCommandNames = new ArrayList<>(Arrays.asList("addcommand","addbanner", "resetshop", "ban"));
 
@@ -94,6 +94,9 @@ public class Help extends ListenerAdapter {
         gameCommandTable.put("fish", new ArrayList<>(Arrays.asList(":fishing_pole_and_fish:", "reward values: 100, 200, 300, 350, 400, 450, 500, 550, 600, 2000 \nCost per line due to Sussy Tax: 20 \nEX: " + PREFIX + "fish")));
         gameCommandTable.put("jackpotsize", new ArrayList<>(Arrays.asList(":ballot_box:", "returns jackpot size for spinwheel \nEX: " + PREFIX + "jackspotsize")));
         gameCommandTable.put("spinwheel", new ArrayList<>(Arrays.asList(":ferris_wheel:", "Initial Jackpot Value: " + jackpotWheelObject.getJackpotVal() + "\nCost per spin: " + jackpotWheelObject.requestAmount + " \n EX: " + PREFIX + "spinwheel")));
+        gameCommandTable.put("fatewheel", new ArrayList<>(Arrays.asList("<a:ThisIsFine:1001329923396468816>", "MINIMUM AMOUNT OF PLAYERS/BETS NEEDED TO SPIN WHEEL:4\nWin by landing on Rincon or Long   Multipliers for each section: Rincon: 1x Long: 2x Uma: -2x Leiss: -1x"
+                + "\n to bet use EX: "  + PREFIX + "fatewheel bet 1000" + " \n to spin use EX: " + PREFIX + "fatewheel spin")));
+
 
         badgeCommandTable.put("equipbadge", new ArrayList<>(Arrays.asList(":credit_card:", "equips a badge that you have in your inventory but not displayed on your credit card. \nEX: " + PREFIX + "equipbadge CodeCoogs")));
         badgeCommandTable.put("unequipbadge", new ArrayList<>(Arrays.asList(":credit_card:", "equips a badge that you have in your inventory but not displayed on your credit card. \nEX: " + PREFIX + "unequipbadge CodeCoogs")));

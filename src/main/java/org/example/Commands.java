@@ -33,6 +33,7 @@ public class Commands extends ListenerAdapter {
     public BadgeShop badgeShopObject = new BadgeShop();
     public AddBanner addBannerObject = new AddBanner();
     public BannerShop bannerShopObject = new BannerShop();
+    public FateWheel fateWheelObject = new FateWheel();
     public Help helpObject;
 
     //used to store commands and badges locally
@@ -97,7 +98,6 @@ public class Commands extends ListenerAdapter {
         ArrayList<String> channelGroups = null;
 
         if(eventChannelID.equals(botChannelID)){ return true;}
-
         switch (commandType){
             case "casino":
                 channelGroups = casinoChannelIDTable;
@@ -358,6 +358,35 @@ public class Commands extends ListenerAdapter {
                     if(!isChannelValid(event,"casino")){break;}
                     if(!checkUserRequestValid(event,args.length,2)){break;}
                     slotsObject.startSlots(server,event,args[1]);
+                    break;
+                case "fatewheel":
+                    if(!isChannelValid(event,"casino")){break;}
+                    if(args.length == 1){
+                        event.getChannel().sendMessage("Error, invalid request please use " +PREFIX + "help for more details" + userID).queue();
+                        break;
+                    }
+                    if(args[1].equals("bet")){
+                        if(!checkUserRequestValid(event,args.length,3)){break;}
+                        fateWheelObject.addBetAmount(server,event,args[2]);
+                        break;
+                    }
+                    else if (args[1].equals("spin")){
+                        if(!checkUserRequestValid(event,args.length,2)){break;}
+                        fateWheelObject.spinFateWheel(server,event,String.valueOf(event.getMember().getIdLong()));
+                        System.out.println("spin");
+                        new java.util.Timer().schedule(
+                                new java.util.TimerTask() {
+                                    @Override
+                                    public void run() {
+                                        fateWheelObject.clearGame();
+                                    }
+                                },
+                                6000
+                        );
+
+                        break;
+                    }
+                    event.getChannel().sendMessage("Error, invalid request please use " +PREFIX + "help for more details" + userID).queue();
                     break;
                 default:
                     break;
