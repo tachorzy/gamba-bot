@@ -161,12 +161,6 @@ public class Commands extends ListenerAdapter {
         //if user posts a url thats not banned do not continue to avoid throwing out error
         if(args[0].contains("https")){ return;}
 
-        if((args[0].isEmpty() || args[0].contains("https")) && event.getMember().getIdLong() == 485572662412705793L){
-            event.getChannel().deleteMessageById(event.getChannel().getLatestMessageIdLong()).queue();
-            System.out.println("rip bozo jenn holdL");
-            return;
-        }
-
         //if user posts a picture do not continue to avoid throwing out error
         if(args[0].isEmpty()){return;}
 
@@ -180,7 +174,7 @@ public class Commands extends ListenerAdapter {
                 return;
             }
 
-            //check if user command is in cases below
+            //check if user command is in cases below and check for if the command is in the right channel of so and the amount of commands is right
             switch(args[0].substring(1)){
                 case "about":
                     About aboutObject = new About(server); //instantiating here since we need to pass the server (DataBase) thro
